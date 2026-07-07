@@ -268,7 +268,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 배포 완료 후 URL 추가
 
 ```text
-https://your-project.vercel.app
+https://vercel.com/metjycs-projects/13th-maeum-bujeok
 ```
 
 ---
