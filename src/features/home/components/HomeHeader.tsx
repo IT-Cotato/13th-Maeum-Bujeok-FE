@@ -2,7 +2,7 @@ import { HOME_CONTENT } from "@/features/home/constants";
 
 export default function HomeHeader() {
   return (
-    <header className="mt-[35px]">
+    <header>
       <p className="text-xl font-medium leading-[27px] text-foreground">
         오늘 <strong className="font-bold">{HOME_CONTENT.userName}</strong>님은
         <br />
