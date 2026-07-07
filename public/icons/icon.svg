@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="마음부적">
+  <rect width="512" height="512" rx="58" fill="#111143"/>
+  <path d="M110 386c-26-53-23-119-11-173 8-36 21-82 38-80 14 1 20 58 35 59 12 1 24-86 49-93 21-6 29 93 44 93 16 0 22-93 44-93 27 0 43 85 54 94 14 12 18-51 36-48 23 4 25 92 18 147-4 35-13 68-25 94H110Z" fill="url(#flame)"/>
+  <path d="M151 386c-13-23-20-50-20-82 0-64 17-112 36-111 19 1 15 75 33 75 19 0 18-121 48-124 31-3 35 125 56 125 16 0 19-77 36-76 19 2 37 68 37 111 0 32-7 59-20 82H151Z" fill="#FF8A2A" opacity=".82"/>
+  <ellipse cx="202" cy="284" rx="28" ry="42" fill="#111143"/>
+  <ellipse cx="310" cy="284" rx="28" ry="42" fill="#111143"/>
+  <path d="M241 354c10 8 21 8 31 0" fill="none" stroke="#111143" stroke-width="15" stroke-linecap="round"/>
+  <defs>
+    <linearGradient id="flame" x1="256" y1="99" x2="256" y2="386" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF8F2F"/>
+      <stop offset=".55" stop-color="#FE7023"/>
+      <stop offset="1" stop-color="#FF5C19"/>
+    </linearGradient>
+  </defs>
+</svg>

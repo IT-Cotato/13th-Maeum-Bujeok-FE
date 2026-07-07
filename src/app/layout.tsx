@@ -5,6 +5,14 @@ export const metadata: Metadata = {
   title: "마음부적",
 
   description: "AI 마음 치유 서비스",
+  icons: {
+    icon: [
+      { url: "/icons/icon.svg", type: "image/svg+xml" },
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
+  },
 
   appleWebApp: {
     capable: true,
@@ -16,7 +24,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#ffffff",
+  themeColor: "#111143",
 };
 
 export default function RootLayout({
