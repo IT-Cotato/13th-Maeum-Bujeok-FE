@@ -20,7 +20,7 @@ export default function BottomNavigation({
   return (
     <nav
       aria-label="주요 메뉴"
-      className="fixed inset-x-0 bottom-0 z-50 mx-auto h-[103px] w-full max-w-[395px] rounded-t-[15px] bg-background shadow-[0_4px_10px_rgba(0,0,0,0.15)]"
+      className="fixed inset-x-0 bottom-0 z-50 mx-auto h-[86px] w-full max-w-[395px] rounded-t-[15px] bg-background shadow-[0_4px_10px_rgba(0,0,0,0.15)]"
     >
       <ul className="grid grid-cols-5 px-6 pt-[11px]">
         {items.map((item) => {
@@ -42,10 +42,6 @@ export default function BottomNavigation({
           );
         })}
       </ul>
-      <div
-        aria-hidden="true"
-        className="mx-auto mt-[8px] h-[5px] w-[135px] rounded-full bg-gray-500"
-      />
     </nav>
   );
 }
