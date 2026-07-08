@@ -20,9 +20,13 @@ export default function BottomNavigation({
   return (
     <nav
       aria-label="주요 메뉴"
+<<<<<<< Updated upstream
       className="fixed inset-x-0 bottom-0 z-50 mx-auto h-[103px] w-full max-w-[395px] rounded-t-[15px] bg-background shadow-[0_4px_10px_rgba(0,0,0,0.15)]"
+=======
+      className="fixed inset-x-0 bottom-0 z-50 h-[86px] w-full rounded-t-[15px] bg-background shadow-[0_4px_10px_rgba(0,0,0,0.15)]"
+>>>>>>> Stashed changes
     >
-      <ul className="grid grid-cols-5 px-6 pt-[11px]">
+      <ul className="mx-auto grid max-w-[395px] grid-cols-5 px-6 pt-[11px]">
         {items.map((item) => {
           const isActive = item.value === activeValue;
 
