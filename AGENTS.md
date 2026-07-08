@@ -392,3 +392,14 @@ Whenever generating code:
 - Do not ignore TypeScript or ESLint errors.
 - Do not disable lint rules unless explicitly requested.
 - Fix the root cause instead of suppressing warnings.
+
+## Figma
+
+When implementing designs from Figma:
+
+- Do not modify the design unless explicitly requested.
+- Do not redesign icons, layouts, spacing, colors, typography, or component proportions.
+- Use the icons and assets from Figma as provided.
+- Match spacing, sizing, border radius, colors, and typography as closely as possible.
+- If any design detail is unclear or missing, ask for clarification instead of making assumptions.
+- Treat the Figma design as the source of truth.
