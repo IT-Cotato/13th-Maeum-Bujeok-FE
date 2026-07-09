@@ -66,7 +66,7 @@ export default function BurnPage() {
           소각
         </h1>
 
-        <div className="mt-[30px] flex items-center justify-between">
+        <div className="mt-[18px] flex items-center justify-between">
           <BurnTabs activeTab={activeTab} onChange={setActiveTab} />
           <button
             aria-label="사진 촬영 또는 선택"
