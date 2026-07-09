@@ -14,7 +14,7 @@ const FORTUNE_ASSETS = {
 export default function BurnFortunePage() {
   return (
     <main className="h-dvh overflow-hidden bg-gray-100 text-foreground">
-      <div className="relative mx-auto h-dvh w-full max-w-[395px] overflow-hidden bg-background px-6 pb-[calc(103px+env(safe-area-inset-bottom))] pt-[70px]">
+      <div className="relative mx-auto h-dvh w-full max-w-[395px] overflow-hidden bg-background px-6 pb-[calc(103px+env(safe-area-inset-bottom))] pt-[28px]">
         <header className="grid grid-cols-[28px_1fr_28px] items-center">
           <Link
             aria-label="소각 입력 화면으로 돌아가기"
@@ -41,7 +41,7 @@ export default function BurnFortunePage() {
 
         <FortuneCard />
 
-        <div className="absolute left-6 right-6 top-[592px] flex flex-col gap-3.5">
+        <div className="absolute left-6 right-6 top-[550px] flex flex-col gap-3.5">
           <button
             className="flex h-[57px] items-center justify-center rounded-lg bg-orange-500 text-xl font-semibold leading-[23px] text-white"
             type="button"
@@ -64,7 +64,7 @@ export default function BurnFortunePage() {
 
 function FortuneCard() {
   return (
-    <section className="absolute left-6 top-[236px] h-[328px] w-[345px] overflow-hidden rounded-[15px] shadow-[0_4px_20px_rgba(18,18,18,0.05)] [background:linear-gradient(152.39deg,var(--orange-200,#fed7a5)_5.4105%,var(--orange-500,#fe7023)_113.62%)]">
+    <section className="absolute left-6 top-[194px] h-[328px] w-[345px] overflow-hidden rounded-[15px] shadow-[0_4px_20px_rgba(18,18,18,0.05)] [background:linear-gradient(152.39deg,var(--orange-200,#fed7a5)_5.4105%,var(--orange-500,#fe7023)_113.62%)]">
       <FortuneAsset
         className="left-[5px] top-[70px] h-[142.823px] w-[153.984px]"
         imageClassName="h-[124.476px] w-[91.801px]"

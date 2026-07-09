@@ -61,7 +61,7 @@ export default function BurnPage() {
 
   return (
     <main className="h-dvh overflow-hidden bg-gray-100 text-foreground">
-      <div className="relative mx-auto h-dvh w-full max-w-[395px] overflow-hidden bg-background px-6 pb-[calc(103px+env(safe-area-inset-bottom))] pt-[70px]">
+      <div className="relative mx-auto h-dvh w-full max-w-[395px] overflow-hidden bg-background px-6 pb-[calc(103px+env(safe-area-inset-bottom))] pt-[28px]">
         <h1 className="text-center text-xl font-medium leading-[23px] text-foreground">
           소각
         </h1>

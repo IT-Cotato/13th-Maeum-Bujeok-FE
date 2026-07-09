@@ -21,7 +21,7 @@ export default function PlaceholderScreen({
 }: PlaceholderScreenProps) {
   return (
     <main className="min-h-dvh bg-gray-100 text-foreground">
-      <div className="relative mx-auto flex min-h-dvh w-full max-w-[395px] flex-col bg-background px-6 pb-[calc(126px+env(safe-area-inset-bottom))] pt-[62px]">
+      <div className="relative mx-auto flex min-h-dvh w-full max-w-[395px] flex-col bg-background px-6 pb-[calc(126px+env(safe-area-inset-bottom))] pt-[28px]">
         <header className="text-center">
           <p className="text-[13px] font-medium leading-[25px] tracking-[0.02em] text-orange-500">
             {eyebrow}
