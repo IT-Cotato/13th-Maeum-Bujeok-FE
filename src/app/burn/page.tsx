@@ -1,11 +1,5 @@
-import PlaceholderScreen from "@/components/common/PlaceholderScreen";
+import BurnPage from "@/features/burn/components/BurnPage";
 
-export default function BurnPage() {
-  return (
-    <PlaceholderScreen
-      activeValue="burn"
-      description="마음을 소각하는 화면은 곧 연결될 예정이에요."
-      title="소각"
-    />
-  );
+export default function Page() {
+  return <BurnPage />;
 }
