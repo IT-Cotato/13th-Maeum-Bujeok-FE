@@ -1,11 +1,35 @@
 "use client";
 
 import { ChangeEvent, useRef, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
+import DiaryCalendar, {
+  type DiaryCalendarEntry,
+} from "@/components/common/DiaryCalendar";
 import BottomNavigation from "@/components/layout/BottomNavigation";
 import { MAIN_NAVIGATION_ITEMS } from "@/constants/navigation";
 
 type BurnTab = "emotion" | "diary";
+
+const DIARY_ENTRIES: DiaryCalendarEntry[] = [
+  1, 2, 7, 9, 10, 11, 13, 14, 15, 18, 19, 20, 21, 22, 25, 26, 27, 28,
+].map((day) => ({
+  content:
+    "누군가에게 잔소리를 들어도 짜증이 너무 난다. 쉬지도 못하고 계속 일만 하니 스트레스를 너무 받은 것 같다. 의욕도 더 떨어지고…",
+  createdAt:
+    `2026.06.${String(day).padStart(2, "0")} ${day === 28 ? "일요일 AM 2:03" : ""}`.trim(),
+  date: `2026-06-${String(day).padStart(2, "0")}`,
+}));
+
+const BURNED_DIARY: DiaryCalendarEntry = {
+  content: "소각한 일기",
+  createdAt: "2026.06.24",
+  date: "2026-06-24",
+  isBurned: true,
+};
+
+const CALENDAR_ENTRIES = [...DIARY_ENTRIES, BURNED_DIARY];
+const CALENDAR_MONTHS = createMonthOptions("2025-01", 36);
 
 export default function BurnPage() {
   const router = useRouter();
@@ -15,7 +39,17 @@ export default function BurnPage() {
   const [selectedImageName, setSelectedImageName] = useState<string | null>(
     null,
   );
+  const [selectedDiaryDate, setSelectedDiaryDate] = useState<string | null>(
+    "2026-06-28",
+  );
+  const [selectedMonth, setSelectedMonth] = useState("2026-06");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const burnButtonPositionClass =
+    activeTab === "emotion"
+      ? "mt-[35px]"
+      : selectedDiaryDate
+        ? "mt-[25px]"
+        : "fixed bottom-[calc(111px+env(safe-area-inset-bottom))] left-1/2 z-40 w-[calc(100%-48px)] max-w-[347px] -translate-x-1/2";
 
   const handleCameraClick = () => {
     void requestCameraPermission();
@@ -33,19 +67,29 @@ export default function BurnPage() {
   };
 
   const handleBurnClick = () => {
+    const selectedDiary = DIARY_ENTRIES.find(
+      (entry) => entry.date === selectedDiaryDate,
+    );
     const trimmedBurnText = burnText.trim();
 
-    if (!trimmedBurnText) {
+    if (activeTab === "emotion" && !trimmedBurnText) {
       setActiveTab("emotion");
       setIsInputError(true);
       return;
     }
 
+    if (activeTab === "diary" && !selectedDiary) {
+      return;
+    }
+
+    const content =
+      activeTab === "diary" ? (selectedDiary?.content ?? "") : trimmedBurnText;
+
     sessionStorage.setItem(
       "maeum-bujeok:pending-burn",
       JSON.stringify({
-        content: trimmedBurnText,
-        imageName: selectedImageName,
+        content,
+        imageName: activeTab === "emotion" ? selectedImageName : null,
       }),
     );
     router.push("/burn/result");
@@ -59,9 +103,16 @@ export default function BurnPage() {
     }
   };
 
+  const handleMonthChange = (month: string) => {
+    setSelectedMonth(month);
+    setSelectedDiaryDate(
+      DIARY_ENTRIES.find((entry) => entry.date.startsWith(month))?.date ?? null,
+    );
+  };
+
   return (
     <main className="h-dvh overflow-hidden bg-gray-100 text-foreground">
-      <div className="relative mx-auto h-dvh w-full max-w-[395px] overflow-hidden bg-background px-6 pb-[calc(103px+env(safe-area-inset-bottom))] pt-[28px]">
+      <div className="relative mx-auto h-dvh w-full max-w-[395px] overflow-y-auto bg-background px-6 pb-[calc(126px+env(safe-area-inset-bottom))] pt-[28px]">
         <h1 className="text-center text-xl font-medium leading-[23px] text-foreground">
           소각
         </h1>
@@ -86,7 +137,13 @@ export default function BurnPage() {
           />
         </div>
 
-        <section className="mt-[22px] h-[452px] rounded-[15px] border border-gray-200 bg-background shadow-[0_4px_20px_rgba(18,18,18,0.05)]">
+        <section
+          className={`mt-[22px] ${
+            activeTab === "emotion"
+              ? "h-[452px] rounded-[15px] border border-gray-200 bg-background shadow-[0_4px_20px_rgba(18,18,18,0.05)]"
+              : ""
+          }`}
+        >
           {activeTab === "emotion" ? (
             <EmotionInput
               hasError={isInputError}
@@ -95,12 +152,17 @@ export default function BurnPage() {
               value={burnText}
             />
           ) : (
-            <DiarySelectSkeleton />
+            <DiarySelect
+              onSelect={setSelectedDiaryDate}
+              onMonthChange={handleMonthChange}
+              selectedDate={selectedDiaryDate}
+              selectedMonth={selectedMonth}
+            />
           )}
         </section>
 
         <button
-          className="mt-[35px] flex h-[57px] w-full items-center justify-center rounded-lg bg-orange-500 text-xl font-semibold leading-[23px] text-white transition-opacity active:opacity-90"
+          className={`flex h-[57px] w-full items-center justify-center rounded-lg bg-orange-500 text-xl font-semibold leading-[23px] text-white transition-opacity active:opacity-90 ${burnButtonPositionClass}`}
           onClick={handleBurnClick}
           type="button"
         >
@@ -199,17 +261,62 @@ function EmotionInput({
   );
 }
 
-function DiarySelectSkeleton() {
+type DiarySelectProps = {
+  onMonthChange: (month: string) => void;
+  onSelect: (date: string | null) => void;
+  selectedDate: string | null;
+  selectedMonth: string;
+};
+
+function DiarySelect({
+  onMonthChange,
+  onSelect,
+  selectedDate,
+  selectedMonth,
+}: DiarySelectProps) {
+  const selectedDiary = DIARY_ENTRIES.find(
+    (entry) => entry.date === selectedDate,
+  );
+
   return (
-    <div className="flex size-full flex-col px-6 py-[22px]">
-      <p className="text-[15px] leading-6 text-gray-400">
-        소각할 일기를 선택해주세요.
-      </p>
-      <div className="mt-6 space-y-3">
-        <div className="h-[72px] rounded-lg border border-dashed border-gray-200 bg-gray-100" />
-        <div className="h-[72px] rounded-lg border border-dashed border-gray-200 bg-gray-100" />
-        <div className="h-[72px] rounded-lg border border-dashed border-gray-200 bg-gray-100" />
-      </div>
+    <div className="size-full">
+      <DiaryCalendar
+        entries={CALENDAR_ENTRIES}
+        month={selectedMonth}
+        monthOptions={CALENDAR_MONTHS}
+        onMonthChange={onMonthChange}
+        onSelect={onSelect}
+        selectedDate={selectedDate}
+      />
+
+      {selectedDiary ? (
+        <section className="mt-[18px]" aria-label="보관일기">
+          <h2 className="text-xl font-medium leading-[23px] text-foreground">
+            보관일기
+          </h2>
+          <article className="mt-3 h-[140px] rounded-lg border border-gray-200 bg-background px-5 py-[18px] shadow-[0_4px_20px_rgba(18,18,18,0.05)]">
+            <p className="text-sm leading-normal text-foreground">
+              {selectedDiary.createdAt}
+            </p>
+            <p className="mt-3 line-clamp-2 text-sm leading-[19px] text-foreground">
+              {selectedDiary.content}
+            </p>
+            <button
+              className="mt-1 text-[13px] leading-[22px] text-gray-400"
+              type="button"
+            >
+              자세히 보기
+            </button>
+            <Image
+              alt=""
+              className="float-right mt-[3px] rotate-90"
+              height={17}
+              src="/figma/diary/diary-detail-arrow.svg"
+              width={17}
+            />
+          </article>
+        </section>
+      ) : null}
     </div>
   );
 }
@@ -250,4 +357,14 @@ async function requestCameraPermission() {
   } catch {
     // The file picker still lets users choose an existing image if camera access is denied.
   }
+}
+
+function createMonthOptions(startMonth: string, count: number): string[] {
+  const [startYear, startMonthNumber] = startMonth.split("-").map(Number);
+
+  return Array.from({ length: count }, (_, index) => {
+    const date = new Date(startYear, startMonthNumber - 1 + index, 1);
+
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+  });
 }
