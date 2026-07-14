@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "JS Arirang HON";
+  src: url("/fonts/JSArirangHON.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #121212;
@@ -43,6 +51,7 @@
   --font-logo:
     "S-Core Dream", "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
+  --font-talisman: "JS Arirang HON", "Pretendard", sans-serif;
 }
 
 body {
@@ -54,6 +63,10 @@ body {
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
+}
+
+.font-talisman {
+  font-family: "JS Arirang HON", "Pretendard", sans-serif;
 }
 
 button,
