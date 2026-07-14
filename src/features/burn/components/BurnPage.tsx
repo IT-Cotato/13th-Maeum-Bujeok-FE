@@ -52,7 +52,6 @@ export default function BurnPage() {
         : "fixed bottom-[calc(111px+env(safe-area-inset-bottom))] left-1/2 z-40 w-[calc(100%-48px)] max-w-[347px] -translate-x-1/2";
 
   const handleCameraClick = () => {
-    void requestCameraPermission();
     fileInputRef.current?.click();
   };
 
@@ -129,7 +128,6 @@ export default function BurnPage() {
           </button>
           <input
             accept="image/*"
-            capture="environment"
             className="hidden"
             onChange={handleImageChange}
             ref={fileInputRef}
@@ -344,19 +342,6 @@ function CameraIcon() {
       />
     </svg>
   );
-}
-
-async function requestCameraPermission() {
-  if (!navigator.mediaDevices?.getUserMedia) {
-    return;
-  }
-
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    stream.getTracks().forEach((track) => track.stop());
-  } catch {
-    // The file picker still lets users choose an existing image if camera access is denied.
-  }
 }
 
 function createMonthOptions(startMonth: string, count: number): string[] {

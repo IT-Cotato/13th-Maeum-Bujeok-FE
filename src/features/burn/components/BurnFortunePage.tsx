@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import BottomNavigation from "@/components/layout/BottomNavigation";
 import { MAIN_NAVIGATION_ITEMS } from "@/constants/navigation";
+import CreateTalismanButton from "@/features/burn/components/CreateTalismanButton";
 
 const FORTUNE_ASSETS = {
   ash1: "/figma/burn/fortune-ash-1.svg",
@@ -42,12 +43,7 @@ export default function BurnFortunePage() {
         <FortuneCard />
 
         <div className="absolute left-6 right-6 top-[550px] flex flex-col gap-3.5">
-          <button
-            className="flex h-[57px] items-center justify-center rounded-lg bg-orange-500 text-xl font-semibold leading-[23px] text-white"
-            type="button"
-          >
-            부적 생성하기
-          </button>
+          <CreateTalismanButton />
           <Link
             className="flex h-[58px] items-center justify-center rounded-lg border border-gray-200 bg-white text-xl font-medium leading-[23px] text-gray-500"
             href="/burn"
