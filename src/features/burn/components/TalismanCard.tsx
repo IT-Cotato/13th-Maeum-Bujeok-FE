@@ -55,7 +55,7 @@ export default function TalismanCard({ talisman }: TalismanCardProps) {
       <div className="absolute left-[13.33%] top-[13.24%] grid h-[14.29%] w-[73.33%] grid-cols-4">
         {characters.map((character, index) => (
           <span
-            className="font-talisman flex items-center justify-center pt-[1cqw] text-[10.15cqw] leading-none text-[#ffcd4a]"
+            className="font-talisman flex items-center justify-center pt-[1cqw] text-[10.15cqw] leading-none text-[#fe7023]"
             key={`${character}-${index}`}
           >
             {character}
@@ -64,7 +64,7 @@ export default function TalismanCard({ talisman }: TalismanCardProps) {
       </div>
 
       <time
-        className="absolute left-1/2 top-[34.66%] -translate-x-1/2 text-[6.09cqw] font-semibold leading-normal text-[#ff6726]"
+        className="absolute left-1/2 top-[34.66%] -translate-x-1/2 text-[6.09cqw] font-semibold leading-normal text-[#fe7023]"
         dateTime={talisman.generatedAt}
       >
         {formatDate(talisman.generatedAt)}
