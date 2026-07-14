@@ -29,12 +29,12 @@ export default function TalismanCard({ talisman }: TalismanCardProps) {
   return (
     <article
       aria-label={`${talisman.phrase} 마음부적`}
-      className="relative aspect-[345/476] w-full overflow-hidden rounded-[15px] bg-[#ffcd4a]"
+      className="relative aspect-[345/476] w-full overflow-hidden rounded-[15px] bg-[#ffcd4a] [container-type:inline-size]"
     >
       {isFirstTemplate ? (
         <Image
           alt=""
-          className="absolute left-[-20px] top-[-16px] h-[516px] w-[385px] max-w-none"
+          className="absolute left-[-5.8%] top-[-3.36%] h-[108.4%] w-[111.6%] max-w-none"
           height={516}
           priority
           src={TEMPLATE_ASSETS[talisman.templateKey]}
@@ -52,10 +52,10 @@ export default function TalismanCard({ talisman }: TalismanCardProps) {
         />
       )}
 
-      <div className="absolute left-[46px] top-[63px] grid h-[68px] w-[253px] grid-cols-4">
+      <div className="absolute left-[13.33%] top-[13.24%] grid h-[14.29%] w-[73.33%] grid-cols-4">
         {characters.map((character, index) => (
           <span
-            className="font-talisman flex items-center justify-center pt-1 text-[35px] leading-none text-[#ffcd4a]"
+            className="font-talisman flex items-center justify-center pt-[1cqw] text-[10.15cqw] leading-none text-[#fe7023]"
             key={`${character}-${index}`}
           >
             {character}
@@ -64,7 +64,7 @@ export default function TalismanCard({ talisman }: TalismanCardProps) {
       </div>
 
       <time
-        className="absolute left-1/2 top-[165px] -translate-x-1/2 text-[21px] font-semibold leading-normal text-[#ff6726]"
+        className="absolute left-1/2 top-[34.66%] -translate-x-1/2 text-[6.09cqw] font-semibold leading-normal text-[#fe7023]"
         dateTime={talisman.generatedAt}
       >
         {formatDate(talisman.generatedAt)}
