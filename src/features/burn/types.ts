@@ -8,7 +8,6 @@ export const TALISMAN_TEMPLATE_KEYS = [
   "talisman-07",
   "talisman-08",
   "talisman-09",
-  "talisman-10",
 ] as const;
 
 export type TalismanTemplateKey = (typeof TALISMAN_TEMPLATE_KEYS)[number];

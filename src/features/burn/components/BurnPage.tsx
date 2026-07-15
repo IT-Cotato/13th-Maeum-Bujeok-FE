@@ -8,6 +8,7 @@ import DiaryCalendar, {
 } from "@/components/common/DiaryCalendar";
 import BottomNavigation from "@/components/layout/BottomNavigation";
 import { MAIN_NAVIGATION_ITEMS } from "@/constants/navigation";
+import BurnedDiaryDialog from "@/features/burn/components/BurnedDiaryDialog";
 
 type BurnTab = "emotion" | "diary";
 
@@ -43,6 +44,7 @@ export default function BurnPage() {
     "2026-06-28",
   );
   const [selectedMonth, setSelectedMonth] = useState("2026-06");
+  const [burnedDiaryDate, setBurnedDiaryDate] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const burnButtonPositionClass =
     activeTab === "emotion"
@@ -151,6 +153,7 @@ export default function BurnPage() {
             />
           ) : (
             <DiarySelect
+              onBurnedSelect={(entry) => setBurnedDiaryDate(entry.date)}
               onSelect={setSelectedDiaryDate}
               onMonthChange={handleMonthChange}
               selectedDate={selectedDiaryDate}
@@ -168,6 +171,13 @@ export default function BurnPage() {
         </button>
 
         <BottomNavigation activeValue="burn" items={MAIN_NAVIGATION_ITEMS} />
+
+        {burnedDiaryDate ? (
+          <BurnedDiaryDialog
+            date={burnedDiaryDate}
+            onClose={() => setBurnedDiaryDate(null)}
+          />
+        ) : null}
       </div>
     </main>
   );
@@ -260,6 +270,7 @@ function EmotionInput({
 }
 
 type DiarySelectProps = {
+  onBurnedSelect: (entry: DiaryCalendarEntry) => void;
   onMonthChange: (month: string) => void;
   onSelect: (date: string | null) => void;
   selectedDate: string | null;
@@ -267,6 +278,7 @@ type DiarySelectProps = {
 };
 
 function DiarySelect({
+  onBurnedSelect,
   onMonthChange,
   onSelect,
   selectedDate,
@@ -282,6 +294,7 @@ function DiarySelect({
         entries={CALENDAR_ENTRIES}
         month={selectedMonth}
         monthOptions={CALENDAR_MONTHS}
+        onBurnedSelect={onBurnedSelect}
         onMonthChange={onMonthChange}
         onSelect={onSelect}
         selectedDate={selectedDate}

@@ -2,24 +2,64 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import BottomNavigation from "@/components/layout/BottomNavigation";
 import { MAIN_NAVIGATION_ITEMS } from "@/constants/navigation";
 import TalismanCard from "@/features/burn/components/TalismanCard";
+import UnsavedTalismanDialog from "@/features/burn/components/UnsavedTalismanDialog";
 import { MOCK_TALISMAN } from "@/features/burn/mocks";
 import { useTalismanStore } from "@/store/useTalismanStore";
+import type { MouseEvent as ReactMouseEvent } from "react";
 
 export default function TalismanResultPage() {
+  const router = useRouter();
   const saveTalisman = useTalismanStore((state) => state.saveTalisman);
   const [isSaved, setIsSaved] = useState(false);
+  const [pendingHref, setPendingHref] = useState<string | null>(null);
 
   const handleSave = () => {
     saveTalisman(MOCK_TALISMAN);
     setIsSaved(true);
   };
 
+  const handleNavigationCapture = (event: ReactMouseEvent<HTMLDivElement>) => {
+    if (isSaved || pendingHref) {
+      return;
+    }
+
+    const target = event.target;
+
+    if (!(target instanceof Element)) {
+      return;
+    }
+
+    const link = target.closest<HTMLAnchorElement>("a[href]");
+    const href = link?.getAttribute("href");
+
+    if (!href || !href.startsWith("/")) {
+      return;
+    }
+
+    event.preventDefault();
+    setPendingHref(href);
+  };
+
+  const handleExit = () => {
+    if (!pendingHref) {
+      return;
+    }
+
+    const href = pendingHref;
+    setPendingHref(null);
+    router.push(href);
+  };
+
   return (
     <main className="h-dvh overflow-hidden bg-gray-100 text-foreground">
-      <div className="relative mx-auto h-dvh w-full max-w-[395px] overflow-y-auto bg-background px-6 pb-[calc(116px+env(safe-area-inset-bottom))] pt-[28px]">
+      <div
+        className="relative mx-auto h-dvh w-full max-w-[395px] overflow-y-auto bg-background px-6 pb-[calc(116px+env(safe-area-inset-bottom))] pt-[28px]"
+        onClickCapture={handleNavigationCapture}
+      >
         <header className="grid grid-cols-[28px_1fr_28px] items-center">
           <Link
             aria-label="개운지침 화면으로 돌아가기"
@@ -48,6 +88,13 @@ export default function TalismanResultPage() {
         </button>
 
         <BottomNavigation activeValue="burn" items={MAIN_NAVIGATION_ITEMS} />
+
+        {pendingHref ? (
+          <UnsavedTalismanDialog
+            onClose={() => setPendingHref(null)}
+            onExit={handleExit}
+          />
+        ) : null}
       </div>
     </main>
   );

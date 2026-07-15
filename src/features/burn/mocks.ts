@@ -10,5 +10,5 @@ export const MOCK_TALISMAN: GeneratedTalisman = {
     referenceId: null,
     type: "diary",
   },
-  templateKey: "talisman-10",
+  templateKey: "talisman-09",
 };
