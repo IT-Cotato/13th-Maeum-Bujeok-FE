@@ -19,18 +19,27 @@ const TEMPLATE_ASSETS: Record<TalismanTemplateKey, string> = {
 
 type TalismanCardProps = {
   talisman: GeneratedTalisman;
+  variant?: "full" | "list" | "report";
 };
 
-export default function TalismanCard({ talisman }: TalismanCardProps) {
+export default function TalismanCard({
+  talisman,
+  variant = "full",
+}: TalismanCardProps) {
   const characters = splitTalismanPhrase(talisman.phrase) ?? ["", "", "", ""];
   const isSpecialTemplate = talisman.templateKey === "talisman-07";
   const templateAsset =
     TEMPLATE_ASSETS[talisman.templateKey] ?? TEMPLATE_ASSETS["talisman-09"];
+  const radiusClass = {
+    full: "rounded-[15px]",
+    list: "rounded-[4.331px]",
+    report: "rounded-[4.297px]",
+  }[variant];
 
   return (
     <article
       aria-label={`${talisman.phrase} 마음부적`}
-      className="relative aspect-[345/476] w-full overflow-hidden rounded-[15px] bg-[#ffcd4a] [container-type:inline-size]"
+      className={`relative aspect-[345/476] w-full overflow-hidden bg-[#ffcd4a] [container-type:inline-size] ${radiusClass}`}
     >
       {isSpecialTemplate ? (
         <Image
