@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import Link from "next/link";
+import { useSyncExternalStore } from "react";
 import TalismanCard from "@/features/burn/components/TalismanCard";
 import { useTalismanStore } from "@/store/useTalismanStore";
 
 const subscribeToClient = () => () => undefined;
 
 export default function SavedTalismanSection() {
-  const [showAll, setShowAll] = useState(false);
   const isClient = useSyncExternalStore(
     subscribeToClient,
     () => true,
@@ -15,27 +15,30 @@ export default function SavedTalismanSection() {
   );
   const savedTalismans = useTalismanStore((state) => state.savedTalismans);
   const availableTalismans = isClient ? savedTalismans : [];
-  const visibleTalismans = showAll
-    ? availableTalismans
-    : availableTalismans.slice(0, 3);
+  const visibleTalismans = availableTalismans.slice(0, 3);
 
   return (
     <section className="mt-[164px] px-6">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-medium leading-[23px]">나의 부적</h2>
-        <button
+        <Link
           className="flex h-[29px] items-center justify-center rounded-full border border-gray-400 px-[13px] text-[13px] font-medium leading-normal text-gray-500"
-          onClick={() => setShowAll((current) => !current)}
-          type="button"
+          href="/report/talismans"
         >
-          {showAll ? "접기" : "더보기"}
-        </button>
+          더보기
+        </Link>
       </div>
 
       {visibleTalismans.length > 0 ? (
-        <div className="mt-[17px] grid grid-cols-3 gap-[9px]">
+        <div className="mt-[17px] grid grid-cols-3 gap-x-[23.28px]">
           {visibleTalismans.map((talisman) => (
-            <TalismanCard key={talisman.id} talisman={talisman} />
+            <Link
+              aria-label={`${talisman.phrase} 부적 자세히 보기`}
+              href={`/report/talismans/${encodeURIComponent(talisman.id)}`}
+              key={talisman.id}
+            >
+              <TalismanCard talisman={talisman} variant="report" />
+            </Link>
           ))}
         </div>
       ) : (
