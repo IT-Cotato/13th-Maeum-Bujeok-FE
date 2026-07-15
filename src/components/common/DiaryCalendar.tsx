@@ -13,6 +13,7 @@ type DiaryCalendarProps = {
   entries: DiaryCalendarEntry[];
   month: string;
   monthOptions: string[];
+  onBurnedSelect?: (entry: DiaryCalendarEntry) => void;
   onMonthChange: (month: string) => void;
   onSelect: (date: string | null) => void;
   selectedDate: string | null;
@@ -24,6 +25,7 @@ export default function DiaryCalendar({
   entries,
   month,
   monthOptions,
+  onBurnedSelect,
   onMonthChange,
   onSelect,
   selectedDate,
@@ -84,7 +86,14 @@ export default function DiaryCalendar({
               aria-pressed={isSelected}
               className="group flex h-[56px] flex-col items-center pt-[7px] outline-none focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-orange-500"
               key={date}
-              onClick={() => onSelect(isWritten ? date : null)}
+              onClick={() => {
+                if (isBurned && entry) {
+                  onBurnedSelect?.(entry);
+                  return;
+                }
+
+                onSelect(isWritten ? date : null);
+              }}
               type="button"
             >
               <DiaryDayIcon
