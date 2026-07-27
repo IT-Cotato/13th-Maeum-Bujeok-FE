@@ -1,9 +1,16 @@
 "use client";
 
 import { motion, useReducedMotion } from "motion/react";
-import { HOME_CONTENT } from "@/features/home/constants";
 
-export default function DailyFortuneCard() {
+type DailyFortuneCardProps = {
+  energyMessage: string;
+  luckyMessage: string;
+};
+
+export default function DailyFortuneCard({
+  energyMessage,
+  luckyMessage,
+}: DailyFortuneCardProps) {
   const shouldReduceMotion = useReducedMotion();
 
   return (
@@ -14,14 +21,11 @@ export default function DailyFortuneCard() {
       initial={shouldReduceMotion ? false : { opacity: 0, y: 14 }}
       transition={{ delay: 0.16, duration: 0.42, ease: "easeOut" }}
     >
-      <FortuneItem
-        title="오늘의 행운"
-        description={HOME_CONTENT.luckyMessage}
-      />
+      <FortuneItem title="오늘의 행운" description={luckyMessage} />
       <FortuneItem
         className="mt-[18px]"
         title="오늘의 기운"
-        description={HOME_CONTENT.energyMessage}
+        description={energyMessage}
       />
     </motion.section>
   );
