@@ -9,6 +9,7 @@ import DiaryCalendar, {
 import BottomNavigation from "@/components/layout/BottomNavigation";
 import { MAIN_NAVIGATION_ITEMS } from "@/constants/navigation";
 import BurnedDiaryDialog from "@/features/burn/components/BurnedDiaryDialog";
+import { createMonthOptions } from "@/features/diary/utils";
 
 type BurnTab = "emotion" | "diary";
 
@@ -357,12 +358,3 @@ function CameraIcon() {
   );
 }
 
-function createMonthOptions(startMonth: string, count: number): string[] {
-  const [startYear, startMonthNumber] = startMonth.split("-").map(Number);
-
-  return Array.from({ length: count }, (_, index) => {
-    const date = new Date(startYear, startMonthNumber - 1 + index, 1);
-
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
-  });
-}

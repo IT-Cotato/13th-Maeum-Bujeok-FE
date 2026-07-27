@@ -12,11 +12,18 @@ export type DiaryCalendarEntry = {
 type DiaryCalendarProps = {
   entries: DiaryCalendarEntry[];
   month: string;
-  monthOptions: string[];
+  monthOptions?: string[];
   onBurnedSelect?: (entry: DiaryCalendarEntry) => void;
   onMonthChange: (month: string) => void;
   onSelect: (date: string | null) => void;
+  /** true면 일기 유무와 상관없이 모든 날짜를 선택할 수 있다. 기본값은 false(작성된 날짜만 선택 가능)로, 소각 화면의 기존 동작을 유지한다. */
+  selectAnyDate?: boolean;
   selectedDate: string | null;
+  /**
+   * "list"(기본값): 소각 화면의 일기 목록 캘린더(작성/소각 아이콘 + 월 드롭다운).
+   * "picker": 일기 날짜 선택 화면의 Figma DatePicker 스타일(숫자만 표시 + < > 월 이동 + 흰 카드).
+   */
+  variant?: "list" | "picker";
 };
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
@@ -24,17 +31,87 @@ const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 export default function DiaryCalendar({
   entries,
   month,
-  monthOptions,
+  monthOptions = [],
   onBurnedSelect,
   onMonthChange,
   onSelect,
+  selectAnyDate = false,
   selectedDate,
+  variant = "list",
 }: DiaryCalendarProps) {
   const [year, monthNumber] = month.split("-").map(Number);
   const daysInMonth = new Date(year, monthNumber, 0).getDate();
   const firstWeekday = new Date(year, monthNumber - 1, 1).getDay();
   const entriesByDate = new Map(entries.map((entry) => [entry.date, entry]));
   const monthLabel = `${year}.${String(monthNumber).padStart(2, "0")}`;
+
+  if (variant === "picker") {
+    return (
+      <section
+        aria-label={`${monthLabel} 날짜 선택`}
+        className="w-full rounded-[13px] bg-white px-4 pb-6 pt-6 shadow-[0px_10px_30px_rgba(0,0,0,0.1)]"
+      >
+        <div className="flex items-center justify-center gap-[21px]">
+          <button
+            aria-label="이전 달"
+            className="flex size-7 items-center justify-center text-orange-500"
+            onClick={() => onMonthChange(shiftMonth(month, -1))}
+            type="button"
+          >
+            <ChevronIcon direction="left" />
+          </button>
+          <p className="text-[17px] font-semibold leading-[22px] text-foreground">
+            {year}년 {monthNumber}월
+          </p>
+          <button
+            aria-label="다음 달"
+            className="flex size-7 items-center justify-center text-orange-500"
+            onClick={() => onMonthChange(shiftMonth(month, 1))}
+            type="button"
+          >
+            <ChevronIcon direction="right" />
+          </button>
+        </div>
+
+        <div className="mt-[18px] grid grid-cols-7">
+          {WEEKDAYS.map((weekday) => (
+            <span
+              className="flex h-[18px] items-center justify-center text-[13px] font-semibold text-gray-400"
+              key={weekday}
+            >
+              {weekday}
+            </span>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-7">
+          {Array.from({ length: firstWeekday }).map((_, index) => (
+            <span className="h-10" key={`empty-${index}`} />
+          ))}
+          {Array.from({ length: daysInMonth }, (_, index) => {
+            const day = index + 1;
+            const date = `${month}-${String(day).padStart(2, "0")}`;
+            const isSelected = selectedDate === date;
+
+            return (
+              <button
+                aria-label={`${day}일`}
+                aria-pressed={isSelected}
+                className={`flex h-10 items-center justify-center rounded-full text-[20px] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-orange-500 ${
+                  isSelected ? "font-semibold text-orange-500" : "text-foreground"
+                }`}
+                key={date}
+                onClick={() => onSelect(date)}
+                type="button"
+              >
+                {day}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section aria-label={`${monthLabel} 일기 달력`} className="w-full">
@@ -92,7 +169,7 @@ export default function DiaryCalendar({
                   return;
                 }
 
-                onSelect(isWritten ? date : null);
+                onSelect(selectAnyDate || isWritten ? date : null);
               }}
               type="button"
             >
@@ -218,4 +295,34 @@ function formatMonthOption(month: string): string {
   const [year, monthNumber] = month.split("-");
 
   return `${year}년 ${Number(monthNumber)}월`;
+}
+
+function shiftMonth(month: string, offset: number): string {
+  const [year, monthNumber] = month.split("-").map(Number);
+  const date = new Date(year, monthNumber - 1 + offset, 1);
+
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
+type ChevronIconProps = {
+  direction: "left" | "right";
+};
+
+function ChevronIcon({ direction }: ChevronIconProps) {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-3 w-[7px]"
+      fill="none"
+      viewBox="0 0 7 12"
+    >
+      <path
+        d={direction === "left" ? "M6 1 1 6l5 5" : "M1 1l5 5-5 5"}
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.5"
+      />
+    </svg>
+  );
 }

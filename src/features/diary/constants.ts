@@ -1,0 +1,154 @@
+// TODO: 백엔드의 사주/감정 분석 API가 준비되면, 아래 두 값은 일기 내용과 유저의
+// 사주 정보를 기반으로 서버에서 생성된 실제 응답으로 교체해야 한다.
+// 지금은 Figma 목업에 있던 예시 문구를 그대로 목업 데이터로 사용한다.
+export const MOCK_COMFORT_MESSAGE =
+  "누구나 지치면 작은 말에도 마음이 흔들릴 수 있어요. 계속 달려오느라 많이 힘들었겠지만, 지금까지도 충분히 잘 버텨내고 있어요. 오늘은 스스로를 탓하기보다 잠시 쉬어가도 괜찮아요.";
+
+export const MOCK_SITUATION_SUMMARY_LEAD =
+  "최근 충분히 쉬지 못한 채 일을 계속하며 스트레스가 많이 쌓였다. 그 영향으로 사소한 잔소리에도 예민해지고 짜증이 늘었으며, 의욕 저하와 인간관계의 피로감까지 겹쳐 화가 자주 나는 상태다. ";
+
+export const MOCK_SITUATION_SUMMARY_HIGHLIGHT =
+  "현재는 휴식과 마음의 여유가 필요한 시기로 보인다.";
+
+export const DIARY_PLACEHOLDER_PROMPTS: string[] = [
+  "무엇부터 써야 할지 고민된다면,\n지금 마음에 가장 오래 남아 있는 감정부터 적어보세요.",
+  "좋았던 일도, 아쉬웠던 일도 괜찮아요.\n오늘의 마음을 있는 그대로 남겨보세요.",
+  "오늘도 수고 많았어요.\n이제 오늘의 마음을 천천히 기록해 보세요.",
+  "지금 떠오르는 생각이 엉켜 있어도 괜찮아요.\n마음속에 남아 있는 이야기가 있다면 잠시 꺼내보세요.",
+  "글로 남기는 것만으로도 한결 가벼워질 수 있어요.\n오늘의 감정을 편하게 남겨보세요.",
+  "오늘 어떤 하루를 보내셨나요?\n떠오르는 이야기부터 편하게 남겨보세요.",
+  "오늘 마음에 남은 일이 있나요?\n떠오르는 이야기부터 천천히 적어보세요.",
+  "오늘 스스로에게 해주고 싶은 말이 있나요?\n그 한마디를 일기의 첫 문장으로 적어보세요.",
+];
+
+export type EmotionId =
+  | "joy"
+  | "happy"
+  | "excited"
+  | "calm"
+  | "neutral"
+  | "lethargic"
+  | "sad"
+  | "anxious"
+  | "angry";
+
+export type EmotionIconLayer = {
+  height: number;
+  left: number;
+  src: string;
+  top: number;
+  width: number;
+};
+
+export type EmotionOption = {
+  boxHeight: number;
+  boxWidth: number;
+  id: EmotionId;
+  label: string;
+  layers: EmotionIconLayer[];
+};
+
+const EMOTION_IMAGE_BASE = "/images/diary/emotions";
+const MASCOT_IMAGE_BASE = "/images/diary/mascots";
+
+export type EmotionMascot = {
+  height: number;
+  src: string;
+  width: number;
+};
+
+// TODO: 나머지 8개 감정의 사주 기반 위로메세지용 큰 마스코트 에셋을 피그마에서
+// 받는 대로 이 맵에 추가해야 한다. 아직 없는 감정은 EmotionIcon을 확대해서 대체 표시한다.
+export const EMOTION_MASCOTS: Partial<Record<EmotionId, EmotionMascot>> = {
+  angry: { height: 162.252, src: `${MASCOT_IMAGE_BASE}/angry-mascot.svg`, width: 138.866 },
+};
+
+export const EMOTIONS: EmotionOption[] = [
+  {
+    boxHeight: 52.92,
+    boxWidth: 56,
+    id: "joy",
+    label: "기뻐요",
+    layers: [
+      { height: 52.92, left: 0, src: `${EMOTION_IMAGE_BASE}/joy-body.svg`, top: 0, width: 56 },
+      { height: 6.67, left: 14.46, src: `${EMOTION_IMAGE_BASE}/joy-eyes.svg`, top: 23.37, width: 25.59 },
+      { height: 7.79, left: 18.91, src: `${EMOTION_IMAGE_BASE}/joy-mouth.svg`, top: 14.46, width: 17.8 },
+    ],
+  },
+  {
+    boxHeight: 59.65,
+    boxWidth: 46,
+    id: "happy",
+    label: "행복해요",
+    layers: [
+      { height: 59.65, left: 0, src: `${EMOTION_IMAGE_BASE}/happy-flame.svg`, top: 0, width: 46 },
+    ],
+  },
+  {
+    boxHeight: 58.98,
+    boxWidth: 47.61,
+    id: "excited",
+    label: "즐거워요",
+    layers: [
+      { height: 58.98, left: 0, src: `${EMOTION_IMAGE_BASE}/excited-flame.svg`, top: 0, width: 47.61 },
+    ],
+  },
+  {
+    boxHeight: 46.39,
+    boxWidth: 48,
+    id: "calm",
+    label: "편안해요",
+    layers: [
+      { height: 46.39, left: 0, src: `${EMOTION_IMAGE_BASE}/calm-body.svg`, top: 0, width: 46.4 },
+      { height: 6.81, left: 12.73, src: `${EMOTION_IMAGE_BASE}/calm-mouth.svg`, top: 18.19, width: 20.69 },
+      { height: 5.85, left: 40.94, src: `${EMOTION_IMAGE_BASE}/calm-sparkle-1.svg`, top: 1.82, width: 4.23 },
+      { height: 4.55, left: 44.71, src: `${EMOTION_IMAGE_BASE}/calm-sparkle-2.svg`, top: 5.11, width: 3.29 },
+    ],
+  },
+  {
+    boxHeight: 54.27,
+    boxWidth: 42.64,
+    id: "neutral",
+    label: "보통이에요",
+    layers: [
+      { height: 54.27, left: 0, src: `${EMOTION_IMAGE_BASE}/neutral-flame.svg`, top: 0, width: 42.64 },
+    ],
+  },
+  {
+    boxHeight: 55.62,
+    boxWidth: 43.7,
+    id: "lethargic",
+    label: "무기력해요",
+    layers: [
+      { height: 55.62, left: 0, src: `${EMOTION_IMAGE_BASE}/lethargic-flame.svg`, top: 0, width: 43.7 },
+    ],
+  },
+  {
+    boxHeight: 49.06,
+    boxWidth: 49.07,
+    id: "sad",
+    label: "슬퍼요",
+    layers: [
+      { height: 49.06, left: 0, src: `${EMOTION_IMAGE_BASE}/sad-body.svg`, top: 0, width: 49.07 },
+    ],
+  },
+  {
+    boxHeight: 50.99,
+    boxWidth: 51,
+    id: "anxious",
+    label: "불안해요",
+    layers: [
+      { height: 50.99, left: 0, src: `${EMOTION_IMAGE_BASE}/anxious-body.svg`, top: 0, width: 51 },
+      { height: 13.72, left: 14.18, src: `${EMOTION_IMAGE_BASE}/anxious-mouth.svg`, top: 15.17, width: 22.89 },
+    ],
+  },
+  {
+    boxHeight: 57.67,
+    boxWidth: 46.55,
+    id: "angry",
+    label: "화나요",
+    layers: [
+      { height: 57.67, left: 0, src: `${EMOTION_IMAGE_BASE}/angry-flame.svg`, top: 0, width: 46.55 },
+    ],
+  },
+];
