@@ -49,18 +49,12 @@ export type EmotionOption = {
 };
 
 const EMOTION_IMAGE_BASE = "/images/diary/emotions";
-const MASCOT_IMAGE_BASE = "/images/diary/mascots";
 
-export type EmotionMascot = {
-  height: number;
-  src: string;
-  width: number;
-};
-
-// TODO: 나머지 8개 감정의 사주 기반 위로메세지용 큰 마스코트 에셋을 피그마에서
-// 받는 대로 이 맵에 추가해야 한다. 아직 없는 감정은 EmotionIcon을 확대해서 대체 표시한다.
-export const EMOTION_MASCOTS: Partial<Record<EmotionId, EmotionMascot>> = {
-  angry: { height: 162.252, src: `${MASCOT_IMAGE_BASE}/angry-mascot.svg`, width: 138.866 },
+// 사주 기반 위로메세지 카드에는 선택한 감정과 무관하게 항상 이 마스코트를 보여준다.
+export const COMFORT_MESSAGE_MASCOT = {
+  height: 162.252,
+  src: "/images/diary/mascots/mascot.svg",
+  width: 138.866,
 };
 
 export const EMOTIONS: EmotionOption[] = [

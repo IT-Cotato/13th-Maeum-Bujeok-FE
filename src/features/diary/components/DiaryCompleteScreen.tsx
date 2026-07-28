@@ -7,9 +7,8 @@ import BottomNavigation from "@/components/layout/BottomNavigation";
 import { MAIN_NAVIGATION_ITEMS } from "@/constants/navigation";
 import DiaryExitDialog from "@/features/diary/components/DiaryExitDialog";
 import EmotionAvatar from "@/features/diary/components/EmotionAvatar";
-import EmotionIcon from "@/features/diary/components/EmotionIcon";
 import {
-  EMOTION_MASCOTS,
+  COMFORT_MESSAGE_MASCOT,
   EMOTIONS,
   MOCK_COMFORT_MESSAGE,
   MOCK_SITUATION_SUMMARY_HIGHLIGHT,
@@ -20,7 +19,6 @@ import { useDiaryDraftStore } from "@/store/useDiaryDraftStore";
 import { useDiarySavedEntryStore } from "@/store/useDiarySavedEntryStore";
 
 const TODAY = getTodayDateString();
-const MASCOT_SIZE = 162;
 
 export default function DiaryCompleteScreen() {
   const router = useRouter();
@@ -35,9 +33,6 @@ export default function DiaryCompleteScreen() {
     state.entry?.date === diaryDate ? state.entry : null,
   );
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-
-  const mascot = EMOTION_MASCOTS[selectedEmotion.id];
-  const mascotScale = MASCOT_SIZE / Math.max(selectedEmotion.boxWidth, selectedEmotion.boxHeight);
 
   const handleEdit = () => {
     router.push(`/diary/new/write?date=${diaryDate}&emotion=${selectedEmotion.id}`);
@@ -106,31 +101,26 @@ export default function DiaryCompleteScreen() {
           <div className="relative flex justify-center">
             <Image
               alt=""
-              className="pointer-events-none absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2"
+              className="pointer-events-none absolute left-1/2 top-1/2 z-0"
               height={233}
               src="/images/diary/mascots/mascot-glow.svg"
+              style={{ transform: "translate(calc(-50% - 4.5px), calc(-50% + 7.4px))" }}
               width={233}
             />
-            {mascot ? (
-              <Image
-                alt=""
-                className="relative z-10"
-                height={mascot.height}
-                src={mascot.src}
-                width={mascot.width}
-              />
-            ) : (
-              <div className="relative z-10">
-                <EmotionIcon emotion={selectedEmotion} scale={mascotScale} />
-              </div>
-            )}
+            <Image
+              alt=""
+              className="relative z-10"
+              height={COMFORT_MESSAGE_MASCOT.height}
+              src={COMFORT_MESSAGE_MASCOT.src}
+              width={COMFORT_MESSAGE_MASCOT.width}
+            />
           </div>
           <p className="mt-9 whitespace-pre-line px-11 text-sm font-medium leading-5 text-foreground">
             {MOCK_COMFORT_MESSAGE}
           </p>
         </section>
 
-        <section className="-mt-11 rounded-lg border border-gray-200 bg-background px-5 py-4 shadow-[0_4px_20px_rgba(18,18,18,0.05)]">
+        <section className="-mt-11 rounded-lg border border-gray-200 bg-background px-5 py-4 shadow-[0_4px_20px_rgba(18,18,18,0.12)]">
           <p className="text-[13px] leading-5 text-foreground">
             {MOCK_SITUATION_SUMMARY_LEAD}
             <span className="text-orange-500">{MOCK_SITUATION_SUMMARY_HIGHLIGHT}</span>
@@ -139,7 +129,7 @@ export default function DiaryCompleteScreen() {
 
         <section className="mt-6">
           <h2 className="text-xl font-medium text-foreground">저장된 일기</h2>
-          <div className="mt-3 rounded-lg border border-gray-200 bg-background px-6 py-5 shadow-[0_4px_20px_rgba(18,18,18,0.05)]">
+          <div className="mt-3 rounded-lg border border-gray-200 bg-background px-6 py-5 shadow-[0_4px_20px_rgba(18,18,18,0.12)]">
             <p className="whitespace-pre-line text-[15px] leading-[22px] text-foreground">
               {entry?.content ?? "저장된 일기 내용을 불러올 수 없어요."}
             </p>
