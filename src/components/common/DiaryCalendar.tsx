@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { getTodayDateString } from "@/features/diary/utils";
 
 export type DiaryCalendarEntry = {
   content: string;
@@ -44,6 +45,7 @@ export default function DiaryCalendar({
   const firstWeekday = new Date(year, monthNumber - 1, 1).getDay();
   const entriesByDate = new Map(entries.map((entry) => [entry.date, entry]));
   const monthLabel = `${year}.${String(monthNumber).padStart(2, "0")}`;
+  const today = getTodayDateString();
 
   if (variant === "picker") {
     return (
@@ -156,6 +158,7 @@ export default function DiaryCalendar({
           const isBurned = entry?.isBurned ?? false;
           const isWritten = Boolean(entry) && !isBurned;
           const isSelected = selectedDate === date;
+          const isToday = date === today;
 
           return (
             <button
@@ -182,7 +185,9 @@ export default function DiaryCalendar({
                 className={`mt-0.5 flex h-[18px] min-w-[26px] items-center justify-center rounded-full px-1 text-[13px] leading-normal transition-colors group-hover:bg-orange-500 group-hover:font-medium group-hover:text-white ${
                   isSelected
                     ? "bg-orange-500 font-medium text-white"
-                    : "text-foreground"
+                    : isToday
+                      ? "font-medium text-orange-500"
+                      : "text-foreground"
                 }`}
               >
                 {day}

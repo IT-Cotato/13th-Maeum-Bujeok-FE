@@ -1,3 +1,33 @@
+import type { DiaryCalendarEntry } from "@/components/common/DiaryCalendar";
+
+const MOCK_WRITTEN_DIARY_DAYS = [
+  1, 2, 7, 9, 10, 11, 13, 14, 15, 18, 19, 20, 21, 22, 25, 26, 27, 28,
+];
+
+// TODO: 백엔드의 일기 목록 API가 준비되면 아래 목업 데이터를 실제 응답으로 교체해야 한다.
+// 소각(burn) 탭과 일기(diary) 탭이 같은 일기 목록을 보여줘야 하므로 이 목업을 공유한다.
+export const MOCK_DIARY_ENTRIES: DiaryCalendarEntry[] = MOCK_WRITTEN_DIARY_DAYS.map(
+  (day) => ({
+    content:
+      "누군가에게 잔소리를 들어도 짜증이 너무 난다. 쉬지도 못하고 계속 일만 하니 스트레스를 너무 받은 것 같다. 의욕도 더 떨어지고…",
+    createdAt:
+      `2026.06.${String(day).padStart(2, "0")} ${day === 28 ? "일요일 AM 2:03" : ""}`.trim(),
+    date: `2026-06-${String(day).padStart(2, "0")}`,
+  }),
+);
+
+export const MOCK_BURNED_DIARY_ENTRY: DiaryCalendarEntry = {
+  content: "소각한 일기",
+  createdAt: "2026.06.24",
+  date: "2026-06-24",
+  isBurned: true,
+};
+
+export const MOCK_DIARY_CALENDAR_ENTRIES: DiaryCalendarEntry[] = [
+  ...MOCK_DIARY_ENTRIES,
+  MOCK_BURNED_DIARY_ENTRY,
+];
+
 // TODO: 백엔드의 사주/감정 분석 API가 준비되면, 아래 두 값은 일기 내용과 유저의
 // 사주 정보를 기반으로 서버에서 생성된 실제 응답으로 교체해야 한다.
 // 지금은 Figma 목업에 있던 예시 문구를 그대로 목업 데이터로 사용한다.

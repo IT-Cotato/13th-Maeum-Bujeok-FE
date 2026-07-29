@@ -18,6 +18,7 @@ import {
   pickBySeed,
 } from "@/features/diary/utils";
 import { useDiaryDraftStore } from "@/store/useDiaryDraftStore";
+import { useDiaryEntriesStore } from "@/store/useDiaryEntriesStore";
 import { useDiarySavedEntryStore } from "@/store/useDiarySavedEntryStore";
 
 const TODAY = getTodayDateString();
@@ -219,6 +220,7 @@ export default function DiaryWriteScreen() {
       emotionId,
       imageUrls: images.map((image) => image.url),
     });
+    useDiaryEntriesStore.getState().setEntry(diaryDate, { content, emotionId });
     router.push(`/diary/new/complete?date=${diaryDate}&emotion=${emotionId}`);
   };
 

@@ -1,11 +1,5 @@
-import PlaceholderScreen from "@/components/common/PlaceholderScreen";
+import DiaryListScreen from "@/features/diary/components/DiaryListScreen";
 
 export default function DiaryPage() {
-  return (
-    <PlaceholderScreen
-      activeValue="diary"
-      description="일기 목록 화면은 곧 연결될 예정이에요."
-      title="일기"
-    />
-  );
+  return <DiaryListScreen />;
 }

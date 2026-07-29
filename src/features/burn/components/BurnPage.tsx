@@ -1,36 +1,22 @@
 "use client";
 
 import { ChangeEvent, useRef, useState } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
+import DiaryArchiveCard from "@/components/common/DiaryArchiveCard";
 import DiaryCalendar, {
   type DiaryCalendarEntry,
 } from "@/components/common/DiaryCalendar";
 import BottomNavigation from "@/components/layout/BottomNavigation";
 import { MAIN_NAVIGATION_ITEMS } from "@/constants/navigation";
 import BurnedDiaryDialog from "@/features/burn/components/BurnedDiaryDialog";
+import {
+  MOCK_DIARY_CALENDAR_ENTRIES,
+  MOCK_DIARY_ENTRIES,
+} from "@/features/diary/constants";
 import { createMonthOptions } from "@/features/diary/utils";
 
 type BurnTab = "emotion" | "diary";
 
-const DIARY_ENTRIES: DiaryCalendarEntry[] = [
-  1, 2, 7, 9, 10, 11, 13, 14, 15, 18, 19, 20, 21, 22, 25, 26, 27, 28,
-].map((day) => ({
-  content:
-    "누군가에게 잔소리를 들어도 짜증이 너무 난다. 쉬지도 못하고 계속 일만 하니 스트레스를 너무 받은 것 같다. 의욕도 더 떨어지고…",
-  createdAt:
-    `2026.06.${String(day).padStart(2, "0")} ${day === 28 ? "일요일 AM 2:03" : ""}`.trim(),
-  date: `2026-06-${String(day).padStart(2, "0")}`,
-}));
-
-const BURNED_DIARY: DiaryCalendarEntry = {
-  content: "소각한 일기",
-  createdAt: "2026.06.24",
-  date: "2026-06-24",
-  isBurned: true,
-};
-
-const CALENDAR_ENTRIES = [...DIARY_ENTRIES, BURNED_DIARY];
 const CALENDAR_MONTHS = createMonthOptions("2025-01", 36);
 
 export default function BurnPage() {
@@ -69,7 +55,7 @@ export default function BurnPage() {
   };
 
   const handleBurnClick = () => {
-    const selectedDiary = DIARY_ENTRIES.find(
+    const selectedDiary = MOCK_DIARY_ENTRIES.find(
       (entry) => entry.date === selectedDiaryDate,
     );
     const trimmedBurnText = burnText.trim();
@@ -108,7 +94,7 @@ export default function BurnPage() {
   const handleMonthChange = (month: string) => {
     setSelectedMonth(month);
     setSelectedDiaryDate(
-      DIARY_ENTRIES.find((entry) => entry.date.startsWith(month))?.date ?? null,
+      MOCK_DIARY_ENTRIES.find((entry) => entry.date.startsWith(month))?.date ?? null,
     );
   };
 
@@ -285,14 +271,14 @@ function DiarySelect({
   selectedDate,
   selectedMonth,
 }: DiarySelectProps) {
-  const selectedDiary = DIARY_ENTRIES.find(
+  const selectedDiary = MOCK_DIARY_ENTRIES.find(
     (entry) => entry.date === selectedDate,
   );
 
   return (
     <div className="size-full">
       <DiaryCalendar
-        entries={CALENDAR_ENTRIES}
+        entries={MOCK_DIARY_CALENDAR_ENTRIES}
         month={selectedMonth}
         monthOptions={CALENDAR_MONTHS}
         onBurnedSelect={onBurnedSelect}
@@ -301,34 +287,7 @@ function DiarySelect({
         selectedDate={selectedDate}
       />
 
-      {selectedDiary ? (
-        <section className="mt-[18px]" aria-label="보관일기">
-          <h2 className="text-xl font-medium leading-[23px] text-foreground">
-            보관일기
-          </h2>
-          <article className="mt-3 h-[140px] rounded-lg border border-gray-200 bg-background px-5 py-[18px] shadow-[0_4px_20px_rgba(18,18,18,0.05)]">
-            <p className="text-sm leading-normal text-foreground">
-              {selectedDiary.createdAt}
-            </p>
-            <p className="mt-3 line-clamp-2 text-sm leading-[19px] text-foreground">
-              {selectedDiary.content}
-            </p>
-            <button
-              className="mt-1 text-[13px] leading-[22px] text-gray-400"
-              type="button"
-            >
-              자세히 보기
-            </button>
-            <Image
-              alt=""
-              className="float-right mt-[3px] rotate-90"
-              height={17}
-              src="/figma/diary/diary-detail-arrow.svg"
-              width={17}
-            />
-          </article>
-        </section>
-      ) : null}
+      {selectedDiary ? <DiaryArchiveCard entry={selectedDiary} /> : null}
     </div>
   );
 }

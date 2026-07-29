@@ -2,11 +2,12 @@
 
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import BottomNavigation from "@/components/layout/BottomNavigation";
 import { MAIN_NAVIGATION_ITEMS } from "@/constants/navigation";
 import DiaryExitDialog from "@/features/diary/components/DiaryExitDialog";
 import EmotionAvatar from "@/features/diary/components/EmotionAvatar";
+import PageHeader from "@/features/diary/components/PageHeader";
 import {
   COMFORT_MESSAGE_MASCOT,
   EMOTIONS,
@@ -16,6 +17,7 @@ import {
 } from "@/features/diary/constants";
 import { getDiaryShortDateParts, getTodayDateString } from "@/features/diary/utils";
 import { useDiaryDraftStore } from "@/store/useDiaryDraftStore";
+import { useDiaryEntriesStore } from "@/store/useDiaryEntriesStore";
 import { useDiarySavedEntryStore } from "@/store/useDiarySavedEntryStore";
 
 const TODAY = getTodayDateString();
@@ -29,10 +31,24 @@ export default function DiaryCompleteScreen() {
     EMOTIONS[0];
   const { datePart, weekdayPart } = getDiaryShortDateParts(diaryDate);
 
-  const entry = useDiarySavedEntryStore((state) =>
+  const ephemeralEntry = useDiarySavedEntryStore((state) =>
     state.entry?.date === diaryDate ? state.entry : null,
   );
+  const [persistedContent, setPersistedContent] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from an external store (localStorage) that isn't available during render
+    setPersistedContent(
+      useDiaryEntriesStore.getState().entries[diaryDate]?.content ?? null,
+    );
+  }, [diaryDate]);
+
+  // "자세히 보기"로 캘린더에서 과거 일기를 볼 때는 저장 직후의 임시 저장소(사진 포함)가
+  // 비어 있으므로, localStorage에 남아 있는 실제 내용을 대신 보여준다(사진은 세션 한정이라 생략).
+  const entry = ephemeralEntry ?? (persistedContent !== null
+    ? { content: persistedContent, date: diaryDate, imageUrls: [] as string[] }
+    : null);
 
   const handleEdit = () => {
     router.push(`/diary/new/write?date=${diaryDate}&emotion=${selectedEmotion.id}`);
@@ -41,6 +57,7 @@ export default function DiaryCompleteScreen() {
   const handleConfirmDelete = () => {
     useDiarySavedEntryStore.getState().clearEntry(diaryDate);
     useDiaryDraftStore.getState().removeDraft(diaryDate);
+    useDiaryEntriesStore.getState().removeEntry(diaryDate);
     setIsDeleteDialogOpen(false);
     router.push("/diary");
   };
@@ -48,19 +65,11 @@ export default function DiaryCompleteScreen() {
   return (
     <main className="min-h-dvh bg-gray-100 text-foreground">
       <div className="relative mx-auto flex min-h-dvh w-full max-w-[395px] flex-col bg-background px-6 pb-[calc(126px+env(safe-area-inset-bottom))] pt-[28px]">
-        <header className="grid grid-cols-[28px_1fr_28px] items-center">
-          <button
-            aria-label="일기 목록으로 돌아가기"
-            className="flex size-7 items-center justify-center"
-            onClick={() => router.push("/diary")}
-            type="button"
-          >
-            <BackIcon />
-          </button>
-          <h1 className="text-center text-xl font-medium leading-[23px] text-foreground">
-            일기
-          </h1>
-        </header>
+        <PageHeader
+          backLabel="일기 목록으로 돌아가기"
+          onBack={() => router.push("/diary")}
+          title="일기"
+        />
 
         <div className="mt-[25px] flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -173,20 +182,6 @@ export default function DiaryCompleteScreen() {
         ) : null}
       </div>
     </main>
-  );
-}
-
-function BackIcon() {
-  return (
-    <svg aria-hidden="true" className="size-7" fill="none" viewBox="0 0 28 28">
-      <path
-        d="M17 7 10 14l7 7"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2.2"
-      />
-    </svg>
   );
 }
 
