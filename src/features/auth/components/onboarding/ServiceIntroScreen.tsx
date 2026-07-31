@@ -1,4 +1,4 @@
-import AuthPrimaryButton from "@/features/auth/components/AuthPrimaryButton";
+import AuthPrimaryButton from "@/features/auth/components/common/AuthPrimaryButton";
 import type { ServiceIntroStep } from "@/features/auth/constants";
 
 type ServiceIntroScreenProps = {
