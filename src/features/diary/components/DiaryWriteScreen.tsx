@@ -35,25 +35,39 @@ export default function DiaryWriteScreen() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const diaryDate = searchParams.get("date") ?? TODAY;
+  const editEntryId = searchParams.get("id");
   const initialEmotionId =
     EMOTIONS.find((emotion) => emotion.id === searchParams.get("emotion"))
       ?.id ?? EMOTIONS[0].id;
-  // 화면5의 "수정" 진입처럼 같은 날짜의 저장된 항목을 편집하러 온 경우를 위한
-  // 최초 진입값. 세션 내 메모리 저장소라 SSR과 불일치할 일이 없어 render 중
-  // 바로 읽어도 안전하다(초기값으로만 사용, 이후엔 재동기화하지 않는다).
-  const existingEntryForEdit =
-    useDiarySavedEntryStore.getState().entry?.date === diaryDate
-      ? useDiarySavedEntryStore.getState().entry
+  // 화면5의 "수정" 진입처럼 기존 항목을 편집하러 온 경우(id 파라미터가 있는 경우)만
+  // 이전 내용을 채워 넣는다. id가 없으면 "+"로 같은 날짜에 새 일기를 추가하는
+  // 경우이므로, 마지막으로 저장한 항목이 우연히 같은 날짜라도 절대 끌어오지 않는다.
+  // 방금 저장한 항목이면 세션 내 임시 저장소(사진 포함)에서, 예전에 저장된
+  // 항목이면 영구 저장소에서 내용을 가져온다. 둘 다 render 중 바로 읽어도
+  // 안전하다(초기값으로만 사용, 이후엔 재동기화하지 않는다).
+  const ephemeralEntry = useDiarySavedEntryStore.getState().entry;
+  const ephemeralEntryForEdit =
+    editEntryId &&
+    ephemeralEntry?.date === diaryDate &&
+    ephemeralEntry.id === editEntryId
+      ? ephemeralEntry
       : null;
+  const persistedEntryForEdit = editEntryId
+    ? useDiaryEntriesStore
+        .getState()
+        .entries[diaryDate]?.find((entry) => entry.id === editEntryId)
+    : undefined;
 
   const placeholder = pickBySeed(DIARY_PLACEHOLDER_PROMPTS, diaryDate);
   const { datePart, weekdayPart } = getDiaryShortDateParts(diaryDate);
   const [emotionId, setEmotionId] = useState<EmotionId>(initialEmotionId);
   const [isEmotionPopoverOpen, setIsEmotionPopoverOpen] = useState(false);
-  const [content, setContent] = useState(existingEntryForEdit?.content ?? "");
+  const [content, setContent] = useState(
+    ephemeralEntryForEdit?.content ?? persistedEntryForEdit?.content ?? "",
+  );
   const [images, setImages] = useState<DiaryImage[]>(
     () =>
-      existingEntryForEdit?.imageUrls.map((url) => ({ id: url, url })) ?? [],
+      ephemeralEntryForEdit?.imageUrls.map((url) => ({ id: url, url })) ?? [],
   );
   const [isLimitMessageVisible, setIsLimitMessageVisible] = useState(false);
   const [isExitDialogOpen, setIsExitDialogOpen] = useState(false);
@@ -214,14 +228,30 @@ export default function DiaryWriteScreen() {
     }
 
     removeDraft(diaryDate);
+
+    let savedId: string;
+
+    if (editEntryId) {
+      useDiaryEntriesStore
+        .getState()
+        .updateEntry(diaryDate, editEntryId, { content, emotionId });
+      savedId = editEntryId;
+    } else {
+      savedId = useDiaryEntriesStore
+        .getState()
+        .addEntry(diaryDate, { content, emotionId });
+    }
+
     useDiarySavedEntryStore.getState().setEntry({
       content,
       date: diaryDate,
       emotionId,
+      id: savedId,
       imageUrls: images.map((image) => image.url),
     });
-    useDiaryEntriesStore.getState().setEntry(diaryDate, { content, emotionId });
-    router.push(`/diary/new/complete?date=${diaryDate}&emotion=${emotionId}`);
+    router.push(
+      `/diary/new/complete?date=${diaryDate}&emotion=${emotionId}&id=${savedId}`,
+    );
   };
 
   return (

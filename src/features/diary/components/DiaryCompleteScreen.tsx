@@ -26,13 +26,17 @@ export default function DiaryCompleteScreen() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const diaryDate = searchParams.get("date") ?? TODAY;
+  const entryId = searchParams.get("id");
   const selectedEmotion =
     EMOTIONS.find((emotion) => emotion.id === searchParams.get("emotion")) ??
     EMOTIONS[0];
   const { datePart, weekdayPart } = getDiaryShortDateParts(diaryDate);
 
   const ephemeralEntry = useDiarySavedEntryStore((state) =>
-    state.entry?.date === diaryDate ? state.entry : null,
+    state.entry?.date === diaryDate &&
+    (!entryId || state.entry.id === entryId)
+      ? state.entry
+      : null,
   );
   const [persistedContent, setPersistedContent] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -40,9 +44,14 @@ export default function DiaryCompleteScreen() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from an external store (localStorage) that isn't available during render
     setPersistedContent(
-      useDiaryEntriesStore.getState().entries[diaryDate]?.content ?? null,
+      entryId
+        ? (useDiaryEntriesStore
+            .getState()
+            .entries[diaryDate]?.find((item) => item.id === entryId)
+            ?.content ?? null)
+        : null,
     );
-  }, [diaryDate]);
+  }, [diaryDate, entryId]);
 
   // "자세히 보기"로 캘린더에서 과거 일기를 볼 때는 저장 직후의 임시 저장소(사진 포함)가
   // 비어 있으므로, localStorage에 남아 있는 실제 내용을 대신 보여준다(사진은 세션 한정이라 생략).
@@ -51,13 +60,19 @@ export default function DiaryCompleteScreen() {
     : null);
 
   const handleEdit = () => {
-    router.push(`/diary/new/write?date=${diaryDate}&emotion=${selectedEmotion.id}`);
+    router.push(
+      `/diary/new/write?date=${diaryDate}&emotion=${selectedEmotion.id}${entryId ? `&id=${entryId}` : ""}`,
+    );
   };
 
   const handleConfirmDelete = () => {
     useDiarySavedEntryStore.getState().clearEntry(diaryDate);
     useDiaryDraftStore.getState().removeDraft(diaryDate);
-    useDiaryEntriesStore.getState().removeEntry(diaryDate);
+
+    if (entryId) {
+      useDiaryEntriesStore.getState().removeEntry(diaryDate, entryId);
+    }
+
     setIsDeleteDialogOpen(false);
     router.push("/diary");
   };

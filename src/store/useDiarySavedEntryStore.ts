@@ -7,6 +7,7 @@ export type DiarySavedEntry = {
   content: string;
   date: string;
   emotionId: EmotionId;
+  id: string;
   imageUrls: string[];
 };
 

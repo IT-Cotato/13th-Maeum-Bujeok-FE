@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "motion/react";
+import { formatShortKoreanDate } from "@/features/diary/utils";
 
 type BurnedDiaryDialogProps = {
   date: string;
@@ -44,7 +45,7 @@ export default function BurnedDiaryDialog({
             className="mt-px text-xs font-medium leading-6 text-orange-500"
             id="burned-diary-date"
           >
-            {formatBurnedDate(date)}
+            {formatShortKoreanDate(date)}
           </p>
         </div>
 
@@ -59,10 +60,4 @@ export default function BurnedDiaryDialog({
       </motion.section>
     </motion.div>
   );
-}
-
-function formatBurnedDate(value: string): string {
-  const [year, month, day] = value.split("-").map(Number);
-
-  return `${year}년 ${month}월 ${day}일`;
 }

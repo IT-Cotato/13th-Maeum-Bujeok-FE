@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, useRef, useState } from "react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import DiaryArchiveCard from "@/components/common/DiaryArchiveCard";
 import DiaryCalendar, {
@@ -10,13 +10,21 @@ import BottomNavigation from "@/components/layout/BottomNavigation";
 import { MAIN_NAVIGATION_ITEMS } from "@/constants/navigation";
 import BurnedDiaryDialog from "@/features/burn/components/BurnedDiaryDialog";
 import {
-  MOCK_DIARY_CALENDAR_ENTRIES,
-  MOCK_DIARY_ENTRIES,
-} from "@/features/diary/constants";
-import { createMonthOptions } from "@/features/diary/utils";
+  createMonthOptions,
+  getMonthFromDate,
+  getTodayDateString,
+  sortEntriesByNewest,
+  toDiaryArchiveEntries,
+  toDiaryCalendarEntries,
+} from "@/features/diary/utils";
+import {
+  type DiaryEntryRecord,
+  useDiaryEntriesStore,
+} from "@/store/useDiaryEntriesStore";
 
 type BurnTab = "emotion" | "diary";
 
+const TODAY = getTodayDateString();
 const CALENDAR_MONTHS = createMonthOptions("2025-01", 36);
 
 export default function BurnPage() {
@@ -27,10 +35,13 @@ export default function BurnPage() {
   const [selectedImageName, setSelectedImageName] = useState<string | null>(
     null,
   );
+  const [diaryEntries, setDiaryEntries] = useState<
+    Record<string, DiaryEntryRecord[]>
+  >({});
   const [selectedDiaryDate, setSelectedDiaryDate] = useState<string | null>(
-    "2026-06-28",
+    null,
   );
-  const [selectedMonth, setSelectedMonth] = useState("2026-06");
+  const [selectedMonth, setSelectedMonth] = useState(getMonthFromDate(TODAY));
   const [burnedDiaryDate, setBurnedDiaryDate] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const burnButtonPositionClass =
@@ -39,6 +50,11 @@ export default function BurnPage() {
       : selectedDiaryDate
         ? "mt-[25px]"
         : "fixed bottom-[calc(111px+env(safe-area-inset-bottom))] left-1/2 z-40 w-[calc(100%-48px)] max-w-[347px] -translate-x-1/2";
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from an external store (localStorage) that isn't available during render
+    setDiaryEntries(useDiaryEntriesStore.getState().entries);
+  }, []);
 
   const handleCameraClick = () => {
     fileInputRef.current?.click();
@@ -55,8 +71,11 @@ export default function BurnPage() {
   };
 
   const handleBurnClick = () => {
-    const selectedDiary = MOCK_DIARY_ENTRIES.find(
-      (entry) => entry.date === selectedDiaryDate,
+    const selectedDayEntries = selectedDiaryDate
+      ? (diaryEntries[selectedDiaryDate] ?? [])
+      : [];
+    const unburnedEntries = selectedDayEntries.filter(
+      (entry) => !entry.isBurned,
     );
     const trimmedBurnText = burnText.trim();
 
@@ -66,12 +85,20 @@ export default function BurnPage() {
       return;
     }
 
-    if (activeTab === "diary" && !selectedDiary) {
+    if (activeTab === "diary" && unburnedEntries.length === 0) {
       return;
     }
 
     const content =
-      activeTab === "diary" ? (selectedDiary?.content ?? "") : trimmedBurnText;
+      activeTab === "diary"
+        ? (sortEntriesByNewest(unburnedEntries)[0]?.content ?? "")
+        : trimmedBurnText;
+
+    if (activeTab === "diary" && selectedDiaryDate) {
+      for (const entry of unburnedEntries) {
+        useDiaryEntriesStore.getState().burnEntry(selectedDiaryDate, entry.id);
+      }
+    }
 
     sessionStorage.setItem(
       "maeum-bujeok:pending-burn",
@@ -89,13 +116,6 @@ export default function BurnPage() {
     if (isInputError) {
       setIsInputError(false);
     }
-  };
-
-  const handleMonthChange = (month: string) => {
-    setSelectedMonth(month);
-    setSelectedDiaryDate(
-      MOCK_DIARY_ENTRIES.find((entry) => entry.date.startsWith(month))?.date ?? null,
-    );
   };
 
   return (
@@ -140,9 +160,10 @@ export default function BurnPage() {
             />
           ) : (
             <DiarySelect
+              entries={diaryEntries}
               onBurnedSelect={(entry) => setBurnedDiaryDate(entry.date)}
               onSelect={setSelectedDiaryDate}
-              onMonthChange={handleMonthChange}
+              onMonthChange={setSelectedMonth}
               selectedDate={selectedDiaryDate}
               selectedMonth={selectedMonth}
             />
@@ -257,6 +278,7 @@ function EmotionInput({
 }
 
 type DiarySelectProps = {
+  entries: Record<string, DiaryEntryRecord[]>;
   onBurnedSelect: (entry: DiaryCalendarEntry) => void;
   onMonthChange: (month: string) => void;
   onSelect: (date: string | null) => void;
@@ -265,20 +287,22 @@ type DiarySelectProps = {
 };
 
 function DiarySelect({
+  entries,
   onBurnedSelect,
   onMonthChange,
   onSelect,
   selectedDate,
   selectedMonth,
 }: DiarySelectProps) {
-  const selectedDiary = MOCK_DIARY_ENTRIES.find(
-    (entry) => entry.date === selectedDate,
-  );
+  const calendarEntries = toDiaryCalendarEntries(entries);
+  const selectedDayEntries = selectedDate
+    ? toDiaryArchiveEntries(selectedDate, entries[selectedDate] ?? [])
+    : [];
 
   return (
     <div className="size-full">
       <DiaryCalendar
-        entries={MOCK_DIARY_CALENDAR_ENTRIES}
+        entries={calendarEntries}
         month={selectedMonth}
         monthOptions={CALENDAR_MONTHS}
         onBurnedSelect={onBurnedSelect}
@@ -287,7 +311,9 @@ function DiarySelect({
         selectedDate={selectedDate}
       />
 
-      {selectedDiary ? <DiaryArchiveCard entry={selectedDiary} /> : null}
+      {selectedDayEntries.length > 0 ? (
+        <DiaryArchiveCard entries={selectedDayEntries} />
+      ) : null}
     </div>
   );
 }
