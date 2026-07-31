@@ -1,3 +1,5 @@
+import { isAxiosError } from "axios";
+
 import type {
   ApiResponse,
   AuthTokens,
@@ -7,9 +9,8 @@ import type {
   SmsSendRequest,
   SmsVerifyRequest,
 } from "@/features/auth/types";
-
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://maumbujeok.p-e.kr";
+import { isAuthTokens } from "@/features/auth/utils";
+import { publicApiClient } from "@/services/apiClient";
 
 export class AuthApiError extends Error {
   code: string;
@@ -52,11 +53,7 @@ export async function login(request: LoginRequest): Promise<AuthTokens> {
     request,
   );
 
-  if (
-    !tokens ||
-    typeof tokens.accessToken !== "string" ||
-    typeof tokens.refreshToken !== "string"
-  ) {
+  if (!isAuthTokens(tokens)) {
     throw new AuthApiError(
       "로그인 응답에서 인증 정보를 확인하지 못했어요.",
       "INVALID_LOGIN_RESPONSE",
@@ -80,23 +77,32 @@ async function postAuthRequest<TRequest, TData = unknown>(
   path: string,
   body: TRequest,
 ): Promise<TData | undefined> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    body: JSON.stringify(body),
-    headers: {
-      "Content-Type": "application/json",
-    },
-    method: "POST",
-  });
-  const payload = (await response
-    .json()
-    .catch(() => null)) as ApiResponse | null;
+  try {
+    const response = await publicApiClient.post<ApiResponse<TData>>(path, body);
+    const payload = response.data;
 
-  if (!response.ok || !payload?.success) {
-    throw new AuthApiError(
-      payload?.message || "요청을 처리하지 못했어요.",
-      payload?.code || String(response.status),
-    );
+    if (!payload.success) {
+      throw new AuthApiError(
+        payload.message || "요청을 처리하지 못했어요.",
+        payload.code || String(response.status),
+      );
+    }
+
+    return payload.data ?? undefined;
+  } catch (error) {
+    if (error instanceof AuthApiError) {
+      throw error;
+    }
+
+    if (isAxiosError<ApiResponse>(error)) {
+      throw new AuthApiError(
+        error.response?.data?.message || "요청을 처리하지 못했어요.",
+        error.response?.data?.code ||
+          error.code ||
+          String(error.response?.status ?? "UNKNOWN"),
+      );
+    }
+
+    throw new AuthApiError("요청을 처리하지 못했어요.", "UNKNOWN");
   }
-
-  return payload.data as TData | undefined;
 }

@@ -1,6 +1,6 @@
 export type ApiResponse<T = unknown> = {
   code: string;
-  data?: T;
+  data?: T | null;
   message: string;
   success: boolean;
 };
@@ -27,6 +27,10 @@ export type PasswordResetRequest = {
 
 export type AuthTokens = {
   accessToken: string;
+  refreshToken: string;
+};
+
+export type TokenReissueRequest = {
   refreshToken: string;
 };
 
