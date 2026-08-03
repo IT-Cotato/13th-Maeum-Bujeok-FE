@@ -2,12 +2,15 @@
 
 import { useState } from "react";
 
-import LoginScreen from "@/features/auth/components/LoginScreen";
-import ServiceIntroScreen from "@/features/auth/components/ServiceIntroScreen";
-import WelcomeScreen from "@/features/auth/components/WelcomeScreen";
+import LoginScreen from "@/features/auth/components/login/LoginScreen";
+import PasswordResetFlow from "@/features/auth/components/password-reset/PasswordResetFlow";
+import ServiceIntroScreen from "@/features/auth/components/onboarding/ServiceIntroScreen";
+import WelcomeScreen from "@/features/auth/components/onboarding/WelcomeScreen";
+import SignupFlow from "@/features/auth/components/signup/SignupFlow";
 import { SERVICE_INTRO_STEPS } from "@/features/auth/constants";
 
-type OnboardingView = "intro" | "login" | "welcome";
+type OnboardingView =
+  "intro" | "login" | "password-reset" | "signup" | "welcome";
 
 export default function OnboardingFlow() {
   const [view, setView] = useState<OnboardingView>("welcome");
@@ -43,7 +46,18 @@ export default function OnboardingFlow() {
           />
         )}
 
-        {view === "login" && <LoginScreen />}
+        {view === "login" && (
+          <LoginScreen
+            onPasswordReset={() => setView("password-reset")}
+            onSignup={() => setView("signup")}
+          />
+        )}
+
+        {view === "password-reset" && (
+          <PasswordResetFlow onExit={() => setView("login")} />
+        )}
+
+        {view === "signup" && <SignupFlow onExit={() => setView("login")} />}
       </div>
     </main>
   );

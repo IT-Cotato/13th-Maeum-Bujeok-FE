@@ -1,11 +1,56 @@
+"use client";
+
 import Image from "next/image";
-import type { FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { useState, type FormEvent } from "react";
 
-import AuthPrimaryButton from "@/features/auth/components/AuthPrimaryButton";
+import { AuthApiError, login } from "@/features/auth/api/auth";
+import AuthPrimaryButton from "@/features/auth/components/common/AuthPrimaryButton";
+import { useAuthStore } from "@/store/useAuthStore";
 
-export default function LoginScreen() {
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+type LoginScreenProps = {
+  onPasswordReset: () => void;
+  onSignup: () => void;
+};
+
+export default function LoginScreen({
+  onPasswordReset,
+  onSignup,
+}: LoginScreenProps) {
+  const router = useRouter();
+  const setTokens = useAuthStore((state) => state.setTokens);
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const canSubmit =
+    phoneNumber.trim().length > 0 && password.length > 0 && !isSubmitting;
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (!canSubmit) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const tokens = await login({
+        password,
+        phoneNumber: phoneNumber.trim(),
+      });
+      setTokens(tokens);
+      router.replace("/");
+    } catch (error) {
+      const message =
+        error instanceof AuthApiError
+          ? error.message
+          : "로그인에 실패했습니다. 다시 시도해주세요.";
+
+      window.alert(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -39,16 +84,19 @@ export default function LoginScreen() {
         onSubmit={handleSubmit}
       >
         <div className="flex flex-col gap-3.5">
-          <label className="sr-only" htmlFor="login-id">
-            아이디
+          <label className="sr-only" htmlFor="login-phone-number">
+            전화번호
           </label>
           <input
-            autoComplete="username"
+            autoComplete="tel"
             className="h-[57px] rounded-lg border border-[rgba(230,230,230,0.6)] bg-transparent px-[17px] text-lg leading-[23px] text-gray-100 outline-none placeholder:text-[rgba(230,230,230,0.6)]"
-            id="login-id"
-            name="loginId"
+            id="login-phone-number"
+            inputMode="tel"
+            name="phoneNumber"
+            onChange={(event) => setPhoneNumber(event.target.value)}
             placeholder="아이디 입력"
             type="text"
+            value={phoneNumber}
           />
           <label className="sr-only" htmlFor="login-password">
             비밀번호
@@ -58,11 +106,17 @@ export default function LoginScreen() {
             className="h-[57px] rounded-lg border border-[rgba(230,230,230,0.6)] bg-transparent px-[17px] text-lg leading-[23px] text-gray-100 outline-none placeholder:text-[rgba(230,230,230,0.6)]"
             id="login-password"
             name="password"
+            onChange={(event) => setPassword(event.target.value)}
             placeholder="비밀번호 입력"
             type="password"
+            value={password}
           />
         </div>
-        <AuthPrimaryButton className="mt-[25px]" type="submit">
+        <AuthPrimaryButton
+          className="mt-[25px]"
+          disabled={!canSubmit}
+          type="submit"
+        >
           로그인
         </AuthPrimaryButton>
       </form>
@@ -71,17 +125,16 @@ export default function LoginScreen() {
         aria-label="계정 찾기 및 가입"
         className="absolute left-1/2 top-[688px] flex -translate-x-1/2 items-center gap-[18px] whitespace-nowrap text-[13px] leading-[23px] text-[rgba(230,230,230,0.7)]"
       >
-        <button type="button">아이디 찾기</button>
+        <button onClick={onPasswordReset} type="button">
+          비밀번호 찾기
+        </button>
         <span
           aria-hidden="true"
           className="h-[19px] w-px bg-[rgba(230,230,230,0.7)]"
         />
-        <button type="button">비밀번호 찾기</button>
-        <span
-          aria-hidden="true"
-          className="h-[19px] w-px bg-[rgba(230,230,230,0.7)]"
-        />
-        <button type="button">회원가입</button>
+        <button onClick={onSignup} type="button">
+          회원가입
+        </button>
       </nav>
     </section>
   );

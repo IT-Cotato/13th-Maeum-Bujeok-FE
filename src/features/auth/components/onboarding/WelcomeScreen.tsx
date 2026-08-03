@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-import AuthPrimaryButton from "@/features/auth/components/AuthPrimaryButton";
+import AuthPrimaryButton from "@/features/auth/components/common/AuthPrimaryButton";
 
 type WelcomeScreenProps = {
   onLogin: () => void;
