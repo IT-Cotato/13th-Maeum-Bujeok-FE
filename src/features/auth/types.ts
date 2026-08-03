@@ -34,6 +34,10 @@ export type TokenReissueRequest = {
   refreshToken: string;
 };
 
+export type LogoutRequest = {
+  refreshToken: string;
+};
+
 export type SignUpRequest = {
   birthDate?: string;
   marketingAgreed: boolean;
