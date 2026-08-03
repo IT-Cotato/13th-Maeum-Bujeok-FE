@@ -12,6 +12,7 @@ type FiveElementMeta = {
 };
 
 export type MyMenuItem = {
+  action?: "logout" | "withdraw";
   href?: string;
   iconHasBackground: boolean;
   iconSize: number;
@@ -103,12 +104,14 @@ export const SUPPORT_MENU_ITEMS: MyMenuItem[] = [
 
 export const ACCOUNT_MENU_ITEMS: MyMenuItem[] = [
   {
+    action: "logout",
     iconHasBackground: true,
     iconSize: 17,
     iconSrc: "/figma/my/menu/logout.svg",
     label: "로그아웃",
   },
   {
+    action: "withdraw",
     iconHasBackground: true,
     iconSize: 17,
     iconSrc: "/figma/my/menu/delete-account.svg",

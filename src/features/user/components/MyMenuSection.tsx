@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 
@@ -6,12 +8,14 @@ import type { MyMenuItem } from "@/features/user/constants";
 type MyMenuSectionProps = {
   className?: string;
   items: MyMenuItem[];
+  onItemClick?: (item: MyMenuItem) => void;
   title: string;
 };
 
 export default function MyMenuSection({
   className = "",
   items,
+  onItemClick,
   title,
 }: MyMenuSectionProps) {
   const hasMultipleItems = items.length > 1;
@@ -34,7 +38,13 @@ export default function MyMenuSection({
               {content}
             </Link>
           ) : (
-            <button className={className} key={item.label} type="button">
+            <button
+              aria-haspopup={item.action ? "dialog" : undefined}
+              className={className}
+              key={item.label}
+              onClick={() => onItemClick?.(item)}
+              type="button"
+            >
               {content}
             </button>
           );
