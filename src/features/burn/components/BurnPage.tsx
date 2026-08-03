@@ -13,7 +13,6 @@ import {
   createMonthOptions,
   getMonthFromDate,
   getTodayDateString,
-  sortEntriesByNewest,
   toDiaryArchiveEntries,
   toDiaryCalendarEntries,
 } from "@/features/diary/utils";
@@ -41,13 +40,14 @@ export default function BurnPage() {
   const [selectedDiaryDate, setSelectedDiaryDate] = useState<string | null>(
     null,
   );
+  const [selectedDiaryId, setSelectedDiaryId] = useState<string | null>(null);
   const [selectedMonth, setSelectedMonth] = useState(getMonthFromDate(TODAY));
   const [burnedDiaryDate, setBurnedDiaryDate] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const burnButtonPositionClass =
     activeTab === "emotion"
       ? "mt-[35px]"
-      : selectedDiaryDate
+      : selectedDiaryId !== null
         ? "mt-[25px]"
         : "fixed bottom-[calc(111px+env(safe-area-inset-bottom))] left-1/2 z-40 w-[calc(100%-48px)] max-w-[347px] -translate-x-1/2";
 
@@ -74,8 +74,8 @@ export default function BurnPage() {
     const selectedDayEntries = selectedDiaryDate
       ? (diaryEntries[selectedDiaryDate] ?? [])
       : [];
-    const unburnedEntries = selectedDayEntries.filter(
-      (entry) => !entry.isBurned,
+    const selectedEntry = selectedDayEntries.find(
+      (entry) => entry.id === selectedDiaryId && !entry.isBurned,
     );
     const trimmedBurnText = burnText.trim();
 
@@ -85,26 +85,27 @@ export default function BurnPage() {
       return;
     }
 
-    if (activeTab === "diary" && unburnedEntries.length === 0) {
+    if (activeTab === "diary" && !selectedEntry) {
       return;
     }
 
     const content =
-      activeTab === "diary"
-        ? (sortEntriesByNewest(unburnedEntries)[0]?.content ?? "")
-        : trimmedBurnText;
+      activeTab === "diary" ? (selectedEntry?.content ?? "") : trimmedBurnText;
 
-    if (activeTab === "diary" && selectedDiaryDate) {
-      for (const entry of unburnedEntries) {
-        useDiaryEntriesStore.getState().burnEntry(selectedDiaryDate, entry.id);
-      }
+    if (activeTab === "diary" && selectedDiaryDate && selectedEntry) {
+      useDiaryEntriesStore
+        .getState()
+        .burnEntry(selectedDiaryDate, selectedEntry.id);
     }
 
     sessionStorage.setItem(
       "maeum-bujeok:pending-burn",
       JSON.stringify({
         content,
+        diaryId: activeTab === "diary" ? (selectedEntry?.id ?? null) : null,
         imageName: activeTab === "emotion" ? selectedImageName : null,
+        recordedDate: activeTab === "diary" ? selectedDiaryDate : null,
+        type: activeTab,
       }),
     );
     router.push("/burn/result");
@@ -116,6 +117,16 @@ export default function BurnPage() {
     if (isInputError) {
       setIsInputError(false);
     }
+  };
+
+  const handleMonthChange = (month: string) => {
+    setSelectedMonth(month);
+    setSelectedDiaryId(null);
+  };
+
+  const handleDiaryDateSelect = (date: string | null) => {
+    setSelectedDiaryDate(date);
+    setSelectedDiaryId(null);
   };
 
   return (
@@ -162,9 +173,11 @@ export default function BurnPage() {
             <DiarySelect
               entries={diaryEntries}
               onBurnedSelect={(entry) => setBurnedDiaryDate(entry.date)}
-              onSelect={setSelectedDiaryDate}
-              onMonthChange={setSelectedMonth}
+              onDiarySelect={setSelectedDiaryId}
+              onMonthChange={handleMonthChange}
+              onSelect={handleDiaryDateSelect}
               selectedDate={selectedDiaryDate}
+              selectedDiaryId={selectedDiaryId}
               selectedMonth={selectedMonth}
             />
           )}
@@ -280,18 +293,22 @@ function EmotionInput({
 type DiarySelectProps = {
   entries: Record<string, DiaryEntryRecord[]>;
   onBurnedSelect: (entry: DiaryCalendarEntry) => void;
+  onDiarySelect: (id: string) => void;
   onMonthChange: (month: string) => void;
   onSelect: (date: string | null) => void;
   selectedDate: string | null;
+  selectedDiaryId: string | null;
   selectedMonth: string;
 };
 
 function DiarySelect({
   entries,
   onBurnedSelect,
+  onDiarySelect,
   onMonthChange,
   onSelect,
   selectedDate,
+  selectedDiaryId,
   selectedMonth,
 }: DiarySelectProps) {
   const calendarEntries = toDiaryCalendarEntries(entries);
@@ -312,7 +329,11 @@ function DiarySelect({
       />
 
       {selectedDayEntries.length > 0 ? (
-        <DiaryArchiveCard entries={selectedDayEntries} />
+        <DiaryArchiveCard
+          entries={selectedDayEntries}
+          onSelect={onDiarySelect}
+          selectedId={selectedDiaryId}
+        />
       ) : null}
     </div>
   );

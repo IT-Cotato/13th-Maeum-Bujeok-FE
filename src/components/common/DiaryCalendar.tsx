@@ -43,7 +43,15 @@ export default function DiaryCalendar({
   const [year, monthNumber] = month.split("-").map(Number);
   const daysInMonth = new Date(year, monthNumber, 0).getDate();
   const firstWeekday = new Date(year, monthNumber - 1, 1).getDay();
-  const entriesByDate = new Map(entries.map((entry) => [entry.date, entry]));
+  const entriesByDate = entries.reduce<Map<string, DiaryCalendarEntry[]>>(
+    (groupedEntries, entry) => {
+      const dateEntries = groupedEntries.get(entry.date) ?? [];
+
+      groupedEntries.set(entry.date, [...dateEntries, entry]);
+      return groupedEntries;
+    },
+    new Map(),
+  );
   const monthLabel = `${year}.${String(monthNumber).padStart(2, "0")}`;
   const today = getTodayDateString();
 
@@ -154,9 +162,11 @@ export default function DiaryCalendar({
         {Array.from({ length: daysInMonth }, (_, index) => {
           const day = index + 1;
           const date = `${month}-${String(day).padStart(2, "0")}`;
-          const entry = entriesByDate.get(date);
-          const isBurned = entry?.isBurned ?? false;
-          const isWritten = Boolean(entry) && !isBurned;
+          const dateEntries = entriesByDate.get(date) ?? [];
+          const storedEntries = dateEntries.filter((entry) => !entry.isBurned);
+          const burnedEntry = dateEntries.find((entry) => entry.isBurned);
+          const isWritten = storedEntries.length > 0;
+          const isBurned = !isWritten && Boolean(burnedEntry);
           const isSelected = selectedDate === date;
           const isToday = date === today;
 
@@ -167,8 +177,8 @@ export default function DiaryCalendar({
               className="group flex h-[56px] flex-col items-center pt-[7px] outline-none focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-orange-500"
               key={date}
               onClick={() => {
-                if (isBurned && entry) {
-                  onBurnedSelect?.(entry);
+                if (isBurned && burnedEntry) {
+                  onBurnedSelect?.(burnedEntry);
                   return;
                 }
 
