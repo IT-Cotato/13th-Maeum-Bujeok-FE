@@ -3,10 +3,10 @@ import Link from "next/link";
 
 import BottomNavigation from "@/components/layout/BottomNavigation";
 import { MAIN_NAVIGATION_ITEMS } from "@/constants/navigation";
+import AccountMenuSection from "@/features/user/components/AccountMenuSection";
 import FiveElementGaugeSection from "@/features/user/components/FiveElementGaugeSection";
 import MyMenuSection from "@/features/user/components/MyMenuSection";
 import {
-  ACCOUNT_MENU_ITEMS,
   CONVENIENCE_MENU_ITEMS,
   DEFAULT_FIVE_ELEMENT_GAUGES,
   SUPPORT_MENU_ITEMS,
@@ -70,7 +70,7 @@ export default function MyPage() {
             title="생활편의"
           />
           <MyMenuSection items={SUPPORT_MENU_ITEMS} title="고객 지원" />
-          <MyMenuSection items={ACCOUNT_MENU_ITEMS} title="계정" />
+          <AccountMenuSection />
         </div>
 
         <BottomNavigation activeValue="my" items={MAIN_NAVIGATION_ITEMS} />
