@@ -89,6 +89,7 @@ export const SUPPORT_MENU_ITEMS: MyMenuItem[] = [
     label: "고객센터",
   },
   {
+    href: "/my/terms",
     iconHasBackground: false,
     iconSize: 31,
     iconSrc: "/figma/my/menu/terms.svg",

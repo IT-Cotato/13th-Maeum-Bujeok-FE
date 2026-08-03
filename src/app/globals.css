@@ -73,3 +73,11 @@ button,
 a {
   -webkit-tap-highlight-color: transparent;
 }
+
+.terms-scrollbar {
+  scrollbar-width: none;
+}
+
+.terms-scrollbar::-webkit-scrollbar {
+  display: none;
+}
