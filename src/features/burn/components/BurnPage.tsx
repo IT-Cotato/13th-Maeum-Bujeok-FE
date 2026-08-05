@@ -1,6 +1,7 @@
 "use client";
 
 import { ChangeEvent, useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import DiaryArchiveCard from "@/components/common/DiaryArchiveCard";
 import DiaryCalendar, {
@@ -23,6 +24,11 @@ import {
 
 type BurnTab = "emotion" | "diary";
 
+type SelectedImage = {
+  name: string;
+  previewUrl: string;
+};
+
 const TODAY = getTodayDateString();
 const CALENDAR_MONTHS = createMonthOptions("2025-01", 36);
 
@@ -31,7 +37,7 @@ export default function BurnPage() {
   const [activeTab, setActiveTab] = useState<BurnTab>("emotion");
   const [burnText, setBurnText] = useState("");
   const [isInputError, setIsInputError] = useState(false);
-  const [selectedImageName, setSelectedImageName] = useState<string | null>(
+  const [selectedImage, setSelectedImage] = useState<SelectedImage | null>(
     null,
   );
   const [diaryEntries, setDiaryEntries] = useState<
@@ -44,9 +50,12 @@ export default function BurnPage() {
   const [selectedMonth, setSelectedMonth] = useState(getMonthFromDate(TODAY));
   const [burnedDiaryDate, setBurnedDiaryDate] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const selectedImageUrlRef = useRef<string | null>(null);
   const burnButtonPositionClass =
     activeTab === "emotion"
-      ? "mt-[35px]"
+      ? selectedImage
+        ? "mt-[19px]"
+        : "mt-[35px]"
       : selectedDiaryId !== null
         ? "mt-[25px]"
         : "fixed bottom-[calc(111px+env(safe-area-inset-bottom))] left-1/2 z-40 w-[calc(100%-48px)] max-w-[347px] -translate-x-1/2";
@@ -54,6 +63,14 @@ export default function BurnPage() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from an external store (localStorage) that isn't available during render
     setDiaryEntries(useDiaryEntriesStore.getState().entries);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (selectedImageUrlRef.current) {
+        URL.revokeObjectURL(selectedImageUrlRef.current);
+      }
+    };
   }, []);
 
   const handleCameraClick = () => {
@@ -67,7 +84,24 @@ export default function BurnPage() {
       return;
     }
 
-    setSelectedImageName(file.name);
+    if (selectedImageUrlRef.current) {
+      URL.revokeObjectURL(selectedImageUrlRef.current);
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+
+    selectedImageUrlRef.current = previewUrl;
+    setSelectedImage({ name: file.name, previewUrl });
+    event.target.value = "";
+  };
+
+  const handleImageRemove = () => {
+    if (selectedImageUrlRef.current) {
+      URL.revokeObjectURL(selectedImageUrlRef.current);
+      selectedImageUrlRef.current = null;
+    }
+
+    setSelectedImage(null);
   };
 
   const handleBurnClick = () => {
@@ -103,7 +137,7 @@ export default function BurnPage() {
       JSON.stringify({
         content,
         diaryId: activeTab === "diary" ? (selectedEntry?.id ?? null) : null,
-        imageName: activeTab === "emotion" ? selectedImageName : null,
+        imageName: activeTab === "emotion" ? selectedImage?.name : null,
         recordedDate: activeTab === "diary" ? selectedDiaryDate : null,
         type: activeTab,
       }),
@@ -158,14 +192,13 @@ export default function BurnPage() {
         <section
           className={`mt-[22px] ${
             activeTab === "emotion"
-              ? "h-[452px] rounded-[15px] border border-gray-200 bg-background shadow-[0_4px_20px_rgba(18,18,18,0.05)]"
+              ? `${selectedImage ? "h-[344px]" : "h-[452px]"} rounded-[15px] border border-gray-200 bg-background shadow-[0_4px_20px_rgba(18,18,18,0.05)]`
               : ""
           }`}
         >
           {activeTab === "emotion" ? (
             <EmotionInput
               hasError={isInputError}
-              imageName={selectedImageName}
               onChange={handleBurnTextChange}
               value={burnText}
             />
@@ -182,6 +215,13 @@ export default function BurnPage() {
             />
           )}
         </section>
+
+        {activeTab === "emotion" && selectedImage ? (
+          <SelectedImagePreview
+            image={selectedImage}
+            onRemove={handleImageRemove}
+          />
+        ) : null}
 
         <button
           className={`flex h-[57px] w-full items-center justify-center rounded-lg bg-orange-500 text-xl font-semibold leading-[23px] text-white transition-opacity active:opacity-90 ${burnButtonPositionClass}`}
@@ -252,17 +292,11 @@ function TabButton({ isActive, label, onClick }: TabButtonProps) {
 
 type EmotionInputProps = {
   hasError: boolean;
-  imageName: string | null;
   onChange: (value: string) => void;
   value: string;
 };
 
-function EmotionInput({
-  hasError,
-  imageName,
-  onChange,
-  value,
-}: EmotionInputProps) {
+function EmotionInput({ hasError, onChange, value }: EmotionInputProps) {
   return (
     <div className="flex size-full flex-col">
       <label className="sr-only" htmlFor="burn-emotion-input">
@@ -281,11 +315,41 @@ function EmotionInput({
         }
         value={value}
       />
-      {imageName ? (
-        <p className="border-t border-gray-200 px-6 py-3 text-[13px] leading-5 text-gray-500">
-          선택된 사진: {imageName}
-        </p>
-      ) : null}
+    </div>
+  );
+}
+
+type SelectedImagePreviewProps = {
+  image: SelectedImage;
+  onRemove: () => void;
+};
+
+function SelectedImagePreview({
+  image,
+  onRemove,
+}: SelectedImagePreviewProps) {
+  return (
+    <div className="relative mt-[26px] h-[97px] w-[102px] overflow-hidden rounded-[4px] border border-orange-400 bg-gray-100">
+      <Image
+        alt={`추가한 사진: ${image.name}`}
+        className="object-cover"
+        fill
+        src={image.previewUrl}
+        unoptimized
+      />
+      <button
+        aria-label="추가한 사진 삭제"
+        className="absolute right-[6px] top-[5px] flex size-[18px] items-center justify-center"
+        onClick={onRemove}
+        type="button"
+      >
+        <Image
+          alt=""
+          height={18}
+          src="/figma/burn/image-remove.svg"
+          width={18}
+        />
+      </button>
     </div>
   );
 }
