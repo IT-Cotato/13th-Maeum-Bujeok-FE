@@ -3,12 +3,24 @@
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import DiaryArchiveCard from "@/components/common/DiaryArchiveCard";
 import DiaryCalendar, {
   type DiaryCalendarEntry,
 } from "@/components/common/DiaryCalendar";
 import BottomNavigation from "@/components/layout/BottomNavigation";
 import { MAIN_NAVIGATION_ITEMS } from "@/constants/navigation";
 import BurnedDiaryDialog from "@/features/burn/components/BurnedDiaryDialog";
+import {
+  createMonthOptions,
+  getMonthFromDate,
+  getTodayDateString,
+  toDiaryArchiveEntries,
+  toDiaryCalendarEntries,
+} from "@/features/diary/utils";
+import {
+  type DiaryEntryRecord,
+  useDiaryEntriesStore,
+} from "@/store/useDiaryEntriesStore";
 
 type BurnTab = "emotion" | "diary";
 
@@ -17,30 +29,7 @@ type SelectedImage = {
   previewUrl: string;
 };
 
-type StoredDiaryEntry = DiaryCalendarEntry & {
-  diaryId: number;
-};
-
-const DIARY_ENTRIES: StoredDiaryEntry[] = [
-  1, 2, 7, 9, 10, 11, 13, 14, 15, 18, 19, 20, 21, 22, 25, 26, 27, 28,
-].map((day, index) => ({
-  content:
-    "누군가에게 잔소리를 들어도 짜증이 너무 난다. 쉬지도 못하고 계속 일만 하니 스트레스를 너무 받은 것 같다. 의욕도 더 떨어지고…",
-  createdAt:
-    `2026.06.${String(day).padStart(2, "0")} ${day === 28 ? "일요일 AM 2:03" : ""}`.trim(),
-  date: `2026-06-${String(day).padStart(2, "0")}`,
-  diaryId: index + 1,
-}));
-
-const BURNED_DIARY: DiaryCalendarEntry = {
-  content: "소각한 일기",
-  createdAt: "2026.06.24",
-  date: "2026-06-24",
-  diaryId: null,
-  isBurned: true,
-};
-
-const CALENDAR_ENTRIES = [...DIARY_ENTRIES, BURNED_DIARY];
+const TODAY = getTodayDateString();
 const CALENDAR_MONTHS = createMonthOptions("2025-01", 36);
 
 export default function BurnPage() {
@@ -48,12 +37,17 @@ export default function BurnPage() {
   const [activeTab, setActiveTab] = useState<BurnTab>("emotion");
   const [burnText, setBurnText] = useState("");
   const [isInputError, setIsInputError] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<SelectedImage | null>(null);
-  const [selectedDiaryDate, setSelectedDiaryDate] = useState<string | null>(
-    "2026-06-28",
+  const [selectedImage, setSelectedImage] = useState<SelectedImage | null>(
+    null,
   );
-  const [selectedDiaryId, setSelectedDiaryId] = useState<number | null>(null);
-  const [selectedMonth, setSelectedMonth] = useState("2026-06");
+  const [diaryEntries, setDiaryEntries] = useState<
+    Record<string, DiaryEntryRecord[]>
+  >({});
+  const [selectedDiaryDate, setSelectedDiaryDate] = useState<string | null>(
+    null,
+  );
+  const [selectedDiaryId, setSelectedDiaryId] = useState<string | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState(getMonthFromDate(TODAY));
   const [burnedDiaryDate, setBurnedDiaryDate] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const selectedImageUrlRef = useRef<string | null>(null);
@@ -65,6 +59,11 @@ export default function BurnPage() {
       : selectedDiaryId !== null
         ? "mt-[25px]"
         : "fixed bottom-[calc(111px+env(safe-area-inset-bottom))] left-1/2 z-40 w-[calc(100%-48px)] max-w-[347px] -translate-x-1/2";
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from an external store (localStorage) that isn't available during render
+    setDiaryEntries(useDiaryEntriesStore.getState().entries);
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -106,8 +105,11 @@ export default function BurnPage() {
   };
 
   const handleBurnClick = () => {
-    const selectedDiary = DIARY_ENTRIES.find(
-      (entry) => entry.diaryId === selectedDiaryId,
+    const selectedDayEntries = selectedDiaryDate
+      ? (diaryEntries[selectedDiaryDate] ?? [])
+      : [];
+    const selectedEntry = selectedDayEntries.find(
+      (entry) => entry.id === selectedDiaryId && !entry.isBurned,
     );
     const trimmedBurnText = burnText.trim();
 
@@ -117,20 +119,26 @@ export default function BurnPage() {
       return;
     }
 
-    if (activeTab === "diary" && !selectedDiary) {
+    if (activeTab === "diary" && !selectedEntry) {
       return;
     }
 
     const content =
-      activeTab === "diary" ? (selectedDiary?.content ?? "") : trimmedBurnText;
+      activeTab === "diary" ? (selectedEntry?.content ?? "") : trimmedBurnText;
+
+    if (activeTab === "diary" && selectedDiaryDate && selectedEntry) {
+      useDiaryEntriesStore
+        .getState()
+        .burnEntry(selectedDiaryDate, selectedEntry.id);
+    }
 
     sessionStorage.setItem(
       "maeum-bujeok:pending-burn",
       JSON.stringify({
         content,
-        diaryId: activeTab === "diary" ? selectedDiary?.diaryId : null,
+        diaryId: activeTab === "diary" ? (selectedEntry?.id ?? null) : null,
         imageName: activeTab === "emotion" ? selectedImage?.name : null,
-        recordedDate: activeTab === "diary" ? selectedDiary?.date : null,
+        recordedDate: activeTab === "diary" ? selectedDiaryDate : null,
         type: activeTab,
       }),
     );
@@ -146,19 +154,12 @@ export default function BurnPage() {
   };
 
   const handleMonthChange = (month: string) => {
-    const firstDiary = DIARY_ENTRIES.find((entry) =>
-      entry.date.startsWith(month),
-    );
-
     setSelectedMonth(month);
-    setSelectedDiaryDate(firstDiary?.date ?? null);
     setSelectedDiaryId(null);
   };
 
   const handleDiaryDateSelect = (date: string | null) => {
-    const firstDiary = DIARY_ENTRIES.find((entry) => entry.date === date);
-
-    setSelectedDiaryDate(firstDiary?.date ?? null);
+    setSelectedDiaryDate(date);
     setSelectedDiaryId(null);
   };
 
@@ -203,6 +204,7 @@ export default function BurnPage() {
             />
           ) : (
             <DiarySelect
+              entries={diaryEntries}
               onBurnedSelect={(entry) => setBurnedDiaryDate(entry.date)}
               onDiarySelect={setSelectedDiaryId}
               onMonthChange={handleMonthChange}
@@ -353,16 +355,18 @@ function SelectedImagePreview({
 }
 
 type DiarySelectProps = {
+  entries: Record<string, DiaryEntryRecord[]>;
   onBurnedSelect: (entry: DiaryCalendarEntry) => void;
-  onDiarySelect: (diaryId: number) => void;
+  onDiarySelect: (id: string) => void;
   onMonthChange: (month: string) => void;
   onSelect: (date: string | null) => void;
   selectedDate: string | null;
-  selectedDiaryId: number | null;
+  selectedDiaryId: string | null;
   selectedMonth: string;
 };
 
 function DiarySelect({
+  entries,
   onBurnedSelect,
   onDiarySelect,
   onMonthChange,
@@ -371,14 +375,15 @@ function DiarySelect({
   selectedDiaryId,
   selectedMonth,
 }: DiarySelectProps) {
-  const selectedDayDiaries = DIARY_ENTRIES.filter(
-    (entry) => entry.date === selectedDate,
-  );
+  const calendarEntries = toDiaryCalendarEntries(entries);
+  const selectedDayEntries = selectedDate
+    ? toDiaryArchiveEntries(selectedDate, entries[selectedDate] ?? [])
+    : [];
 
   return (
     <div className="size-full">
       <DiaryCalendar
-        entries={CALENDAR_ENTRIES}
+        entries={calendarEntries}
         month={selectedMonth}
         monthOptions={CALENDAR_MONTHS}
         onBurnedSelect={onBurnedSelect}
@@ -387,47 +392,12 @@ function DiarySelect({
         selectedDate={selectedDate}
       />
 
-      {selectedDayDiaries.length > 0 ? (
-        <section className="mt-[18px]" aria-label="보관일기">
-          <h2 className="text-xl font-medium leading-[23px] text-foreground">
-            보관일기
-          </h2>
-          <div className="mt-3 space-y-3">
-            {selectedDayDiaries.map((diary) => {
-              const isSelected = diary.diaryId === selectedDiaryId;
-
-              return (
-                <button
-                  aria-label={`${diary.createdAt} 일기 선택`}
-                  aria-pressed={isSelected}
-                  className={`block h-[140px] w-full rounded-lg border bg-background px-5 py-[18px] text-left shadow-[0_4px_20px_rgba(18,18,18,0.05)] transition-colors ${
-                    isSelected ? "border-orange-500" : "border-gray-200"
-                  }`}
-                  key={diary.diaryId}
-                  onClick={() => onDiarySelect(diary.diaryId)}
-                  type="button"
-                >
-                  <p className="text-sm leading-normal text-foreground">
-                    {diary.createdAt}
-                  </p>
-                  <p className="mt-3 line-clamp-2 text-sm leading-[19px] text-foreground">
-                    {diary.content}
-                  </p>
-                  <span className="mt-1 inline-block text-[13px] leading-[22px] text-gray-400">
-                    {isSelected ? "소각할 일기로 선택됨" : "이 일기 선택"}
-                  </span>
-                  <Image
-                    alt=""
-                    className="float-right mt-[3px] rotate-90"
-                    height={17}
-                    src="/figma/diary/diary-detail-arrow.svg"
-                    width={17}
-                  />
-                </button>
-              );
-            })}
-          </div>
-        </section>
+      {selectedDayEntries.length > 0 ? (
+        <DiaryArchiveCard
+          entries={selectedDayEntries}
+          onSelect={onDiarySelect}
+          selectedId={selectedDiaryId}
+        />
       ) : null}
     </div>
   );
@@ -456,14 +426,4 @@ function CameraIcon() {
       />
     </svg>
   );
-}
-
-function createMonthOptions(startMonth: string, count: number): string[] {
-  const [startYear, startMonthNumber] = startMonth.split("-").map(Number);
-
-  return Array.from({ length: count }, (_, index) => {
-    const date = new Date(startYear, startMonthNumber - 1 + index, 1);
-
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
-  });
 }
