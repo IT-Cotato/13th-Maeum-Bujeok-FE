@@ -26,6 +26,7 @@
   --gray-400: #b7b7b7;
   --gray-100: #f3f3f3;
   --gray-200: #e6e6e6;
+  --red-500: #fe2323;
 }
 
 @theme inline {
@@ -46,6 +47,7 @@
   --color-gray-400: var(--gray-400);
   --color-gray-100: var(--gray-100);
   --color-gray-200: var(--gray-200);
+  --color-red-500: var(--red-500);
   --font-sans:
     "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-logo:
@@ -72,4 +74,12 @@ body {
 button,
 a {
   -webkit-tap-highlight-color: transparent;
+}
+
+.terms-scrollbar {
+  scrollbar-width: none;
+}
+
+.terms-scrollbar::-webkit-scrollbar {
+  display: none;
 }

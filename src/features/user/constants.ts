@@ -1,4 +1,9 @@
-import type { FiveElement, FiveElementGaugeValue } from "@/features/user/types";
+import type {
+  FiveElement,
+  FiveElementGaugeValue,
+  NotificationDays,
+  NotificationSettings,
+} from "@/features/user/types";
 
 type FiveElementMeta = {
   barClassName: string;
@@ -7,6 +12,8 @@ type FiveElementMeta = {
 };
 
 export type MyMenuItem = {
+  action?: "logout" | "withdraw";
+  href?: string;
   iconHasBackground: boolean;
   iconSize: number;
   iconSrc: string;
@@ -51,12 +58,28 @@ export const DEFAULT_FIVE_ELEMENT_GAUGES: FiveElementGaugeValue[] = [
 
 export const CONVENIENCE_MENU_ITEMS: MyMenuItem[] = [
   {
+    href: "/my/notifications",
     iconHasBackground: true,
     iconSize: 18,
     iconSrc: "/figma/my/menu/alarm.svg",
     label: "알림 설정",
   },
 ];
+
+export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
+  diaryReminderEnabled: true,
+  fortuneActionEnabled: true,
+};
+
+export const DEFAULT_NOTIFICATION_DAYS: NotificationDays = {
+  fridayEnabled: true,
+  mondayEnabled: true,
+  saturdayEnabled: true,
+  sundayEnabled: true,
+  thursdayEnabled: true,
+  tuesdayEnabled: true,
+  wednesdayEnabled: true,
+};
 
 export const SUPPORT_MENU_ITEMS: MyMenuItem[] = [
   {
@@ -66,6 +89,7 @@ export const SUPPORT_MENU_ITEMS: MyMenuItem[] = [
     label: "고객센터",
   },
   {
+    href: "/my/terms",
     iconHasBackground: false,
     iconSize: 31,
     iconSrc: "/figma/my/menu/terms.svg",
@@ -81,12 +105,14 @@ export const SUPPORT_MENU_ITEMS: MyMenuItem[] = [
 
 export const ACCOUNT_MENU_ITEMS: MyMenuItem[] = [
   {
+    action: "logout",
     iconHasBackground: true,
     iconSize: 17,
     iconSrc: "/figma/my/menu/logout.svg",
     label: "로그아웃",
   },
   {
+    action: "withdraw",
     iconHasBackground: true,
     iconSize: 17,
     iconSrc: "/figma/my/menu/delete-account.svg",

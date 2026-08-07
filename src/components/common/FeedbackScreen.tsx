@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { ReactNode } from "react";
 
 type FeedbackScreenProps = {
@@ -73,34 +74,15 @@ export function ErrorGhostIcon() {
 
 export function LoadingFlameIcon() {
   return (
-    <svg
-      aria-hidden="true"
-      className="h-[120px] w-[55px] overflow-visible"
-      fill="none"
-      viewBox="0 0 55 120"
-    >
-      <path
-        className="origin-bottom animate-[pulse_1.5s_ease-in-out_infinite]"
-        d="M25.4 113.2C10 104.2 2.4 92.7 2.4 78.8c0-9.5 5.2-15.3 10.5-20.6 6.5-6.5 13.2-12.9 13.2-26.8 0-9.3-3.2-16.2-6.8-22.3 15.3 8.1 26.2 21.5 26.2 36.4 0 7-3.2 13-6.6 18.9-4.1 7.2-8.5 14.9-5.2 25.1 1.9 5.6 5.5 8.4 10.1 8.7-3.7 9.1-9.8 14.1-18.4 15Z"
-        fill="url(#loading-flame)"
+    <div aria-hidden="true" className="relative h-[120px] w-[55px]">
+      <Image
+        alt=""
+        className="absolute -left-5 -top-4 h-40 w-[95px] max-w-none"
+        height={160}
+        priority
+        src="/figma/feedback/loading-flame.svg"
+        width={95}
       />
-      <path
-        d="M24.1 113.1c-12.4-3-20.6-10.6-22-23.5 5.6 6.4 11.1 8.6 16.4 6.6 4.7-1.8 7.1-6 7.1-12.5 8.2 8.2 10.5 21.5-1.5 29.4Z"
-        fill="#FFC8A4"
-      />
-      <defs>
-        <linearGradient
-          gradientUnits="userSpaceOnUse"
-          id="loading-flame"
-          x1="31"
-          x2="31"
-          y1="9"
-          y2="113"
-        >
-          <stop stopColor="#FFD7BF" />
-          <stop offset="1" stopColor="#FFB07A" />
-        </linearGradient>
-      </defs>
-    </svg>
+    </div>
   );
 }
