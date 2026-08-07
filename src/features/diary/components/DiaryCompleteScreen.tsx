@@ -42,23 +42,31 @@ export default function DiaryCompleteScreen() {
   );
   const [persistedContent, setPersistedContent] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  // 저장 직후(ephemeralEntry가 채워진 경우)에만 부정 감정 소각 제안 팝업을 띄운다.
-  // 나중에 캘린더 "자세히 보기"로 재방문할 때는 ephemeralEntry가 비어 있으므로 다시 뜨지 않는다.
-  const [isBurnSuggestionOpen, setIsBurnSuggestionOpen] = useState(
-    () => ephemeralEntry !== null && NEGATIVE_EMOTION_IDS.includes(selectedEmotion.id),
-  );
+  const [isBurnSuggestionOpen, setIsBurnSuggestionOpen] = useState(false);
 
   useEffect(() => {
+    const persistedEntry = entryId
+      ? useDiaryEntriesStore
+          .getState()
+          .entries[diaryDate]?.find((item) => item.id === entryId)
+      : undefined;
+
     // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from an external store (localStorage) that isn't available during render
-    setPersistedContent(
-      entryId
-        ? (useDiaryEntriesStore
-            .getState()
-            .entries[diaryDate]?.find((item) => item.id === entryId)
-            ?.content ?? null)
-        : null,
-    );
-  }, [diaryDate, entryId]);
+    setPersistedContent(persistedEntry?.content ?? null);
+
+    // 저장 직후(ephemeralEntry가 채워진 경우) + 아직 소각되지 않은 경우에만 부정 감정
+    // 소각 제안 팝업을 띄운다. 이미 소각된 일기를 "자세히 보기"로 다시 열었을 때(같은 세션이라
+    // ephemeralEntry가 남아있는 경우 포함)는 다시 소각을 묻지 않는다.
+    const isAlreadyBurned = persistedEntry?.isBurned ?? false;
+
+    if (
+      ephemeralEntry &&
+      !isAlreadyBurned &&
+      NEGATIVE_EMOTION_IDS.includes(selectedEmotion.id)
+    ) {
+      setIsBurnSuggestionOpen(true);
+    }
+  }, [diaryDate, entryId, ephemeralEntry, selectedEmotion.id]);
 
   // "자세히 보기"로 캘린더에서 과거 일기를 볼 때는 저장 직후의 임시 저장소(사진 포함)가
   // 비어 있으므로, localStorage에 남아 있는 실제 내용을 대신 보여준다(사진은 세션 한정이라 생략).
