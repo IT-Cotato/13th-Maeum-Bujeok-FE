@@ -48,6 +48,15 @@ export type EmotionOption = {
   layers: EmotionIconLayer[];
 };
 
+// TODO: 백엔드의 감정 분석 API가 준비되면, 부정 감정 레벨은 서버가 계산한 실제 값과 임계치로
+// 교체해야 한다. 지금은 사용자가 고른 감정이 부정적인 경우를 "임계치 이상 감지"로 취급하는 목업이다.
+export const NEGATIVE_EMOTION_IDS: EmotionId[] = [
+  "lethargic",
+  "sad",
+  "anxious",
+  "angry",
+];
+
 const EMOTION_IMAGE_BASE = "/images/diary/emotions";
 
 // 사주 기반 위로메세지 카드에는 선택한 감정과 무관하게 항상 이 마스코트를 보여준다.

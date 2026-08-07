@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import BottomNavigation from "@/components/layout/BottomNavigation";
 import { MAIN_NAVIGATION_ITEMS } from "@/constants/navigation";
+import BurnSuggestionDialog from "@/features/diary/components/BurnSuggestionDialog";
 import DiaryExitDialog from "@/features/diary/components/DiaryExitDialog";
 import EmotionAvatar from "@/features/diary/components/EmotionAvatar";
 import PageHeader from "@/features/diary/components/PageHeader";
@@ -14,6 +15,7 @@ import {
   MOCK_COMFORT_MESSAGE,
   MOCK_SITUATION_SUMMARY_HIGHLIGHT,
   MOCK_SITUATION_SUMMARY_LEAD,
+  NEGATIVE_EMOTION_IDS,
 } from "@/features/diary/constants";
 import { getDiaryShortDateParts, getTodayDateString } from "@/features/diary/utils";
 import { useDiaryDraftStore } from "@/store/useDiaryDraftStore";
@@ -40,6 +42,11 @@ export default function DiaryCompleteScreen() {
   );
   const [persistedContent, setPersistedContent] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  // 저장 직후(ephemeralEntry가 채워진 경우)에만 부정 감정 소각 제안 팝업을 띄운다.
+  // 나중에 캘린더 "자세히 보기"로 재방문할 때는 ephemeralEntry가 비어 있으므로 다시 뜨지 않는다.
+  const [isBurnSuggestionOpen, setIsBurnSuggestionOpen] = useState(
+    () => ephemeralEntry !== null && NEGATIVE_EMOTION_IDS.includes(selectedEmotion.id),
+  );
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from an external store (localStorage) that isn't available during render
@@ -75,6 +82,27 @@ export default function DiaryCompleteScreen() {
 
     setIsDeleteDialogOpen(false);
     router.push("/diary");
+  };
+
+  const handleBurnFromSuggestion = () => {
+    const burnEntryId = ephemeralEntry?.id ?? entryId;
+
+    if (burnEntryId) {
+      useDiaryEntriesStore.getState().burnEntry(diaryDate, burnEntryId);
+    }
+
+    sessionStorage.setItem(
+      "maeum-bujeok:pending-burn",
+      JSON.stringify({
+        content: entry?.content ?? "",
+        diaryId: burnEntryId ?? null,
+        imageName: null,
+        recordedDate: diaryDate,
+        type: "diary",
+      }),
+    );
+    setIsBurnSuggestionOpen(false);
+    router.push("/burn/result");
   };
 
   return (
@@ -193,6 +221,13 @@ export default function DiaryCompleteScreen() {
             primaryLabel="삭제하기"
             secondaryLabel="취소"
             title="일기를 삭제할까요?"
+          />
+        ) : null}
+
+        {isBurnSuggestionOpen ? (
+          <BurnSuggestionDialog
+            onBurn={handleBurnFromSuggestion}
+            onClose={() => setIsBurnSuggestionOpen(false)}
           />
         ) : null}
       </div>
