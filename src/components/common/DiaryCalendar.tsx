@@ -7,7 +7,6 @@ export type DiaryCalendarEntry = {
   content: string;
   createdAt: string;
   date: string;
-  diaryId: number | null;
   isBurned?: boolean;
 };
 
