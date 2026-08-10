@@ -4,13 +4,14 @@ import type {
   ApiResponse,
   AuthTokens,
   LoginRequest,
+  MemberOnboardingRequest,
   PasswordResetRequest,
   SignUpRequest,
   SmsSendRequest,
   SmsVerifyRequest,
 } from "@/features/auth/types";
 import { isAuthTokens } from "@/features/auth/utils";
-import { publicApiClient } from "@/services/apiClient";
+import { apiClient, publicApiClient } from "@/services/apiClient";
 
 export class AuthApiError extends Error {
   code: string;
@@ -47,6 +48,15 @@ export async function signUp(request: SignUpRequest): Promise<void> {
   await postAuthRequest<SignUpRequest>("/api/auth/signup", request);
 }
 
+export async function completeOnboarding(
+  request: MemberOnboardingRequest,
+): Promise<void> {
+  await postProtectedAuthRequest<MemberOnboardingRequest>(
+    "/api/members/onboarding",
+    request,
+  );
+}
+
 export async function login(request: LoginRequest): Promise<AuthTokens> {
   const tokens = await postAuthRequest<LoginRequest, AuthTokens>(
     "/api/auth/login",
@@ -79,6 +89,40 @@ async function postAuthRequest<TRequest, TData = unknown>(
 ): Promise<TData | undefined> {
   try {
     const response = await publicApiClient.post<ApiResponse<TData>>(path, body);
+    const payload = response.data;
+
+    if (!payload.success) {
+      throw new AuthApiError(
+        payload.message || "요청을 처리하지 못했어요.",
+        payload.code || String(response.status),
+      );
+    }
+
+    return payload.data ?? undefined;
+  } catch (error) {
+    if (error instanceof AuthApiError) {
+      throw error;
+    }
+
+    if (isAxiosError<ApiResponse>(error)) {
+      throw new AuthApiError(
+        error.response?.data?.message || "요청을 처리하지 못했어요.",
+        error.response?.data?.code ||
+          error.code ||
+          String(error.response?.status ?? "UNKNOWN"),
+      );
+    }
+
+    throw new AuthApiError("요청을 처리하지 못했어요.", "UNKNOWN");
+  }
+}
+
+async function postProtectedAuthRequest<TRequest, TData = unknown>(
+  path: string,
+  body: TRequest,
+): Promise<TData | undefined> {
+  try {
+    const response = await apiClient.post<ApiResponse<TData>>(path, body);
     const payload = response.data;
 
     if (!payload.success) {

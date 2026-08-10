@@ -11,6 +11,7 @@ import type {
 } from "@/features/auth/types";
 
 type SajuProfileStepProps = {
+  isSubmitting?: boolean;
   onBack: () => void;
   onConfirm: (profile: SajuProfileDraft) => void;
 };
@@ -28,6 +29,7 @@ const CALENDAR_OPTIONS: Array<{ label: string; value: CalendarType }> = [
 ];
 
 export default function SajuProfileStep({
+  isSubmitting = false,
   onBack,
   onConfirm,
 }: SajuProfileStepProps) {
@@ -40,7 +42,9 @@ export default function SajuProfileStep({
   const birthDate = parseBirthDate(birthDateDigits);
   const birthTime = parseBirthTime(birthTimeDigits);
   const canConfirm =
-    birthDate !== null && (isBirthTimeUnknown || birthTime !== null);
+    birthDate !== null &&
+    (isBirthTimeUnknown || birthTime !== null) &&
+    !isSubmitting;
 
   const handleConfirm = () => {
     if (!canConfirm || !birthDate) {
@@ -171,7 +175,7 @@ export default function SajuProfileStep({
           type="button"
           variant="light"
         >
-          확인
+          {isSubmitting ? "저장 중" : "확인"}
         </AuthPrimaryButton>
       </div>
     </section>

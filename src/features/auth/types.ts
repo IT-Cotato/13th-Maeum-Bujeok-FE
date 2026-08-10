@@ -39,14 +39,9 @@ export type LogoutRequest = {
 };
 
 export type SignUpRequest = {
-  birthDate?: string;
-  marketingAgreed: boolean;
   name: string;
   password: string;
   phoneNumber: string;
-  privacyAgreed: boolean;
-  sensitiveDataAgreed: boolean;
-  termsAgreed: boolean;
 };
 
 export type SignUpTerms = {
@@ -64,4 +59,23 @@ export type SajuProfileDraft = {
   birthTime: string | null;
   calendarType: CalendarType;
   gender: Gender;
+};
+
+export type MemberOnboardingRequest = {
+  birthDate: string;
+  birthTime: string | null;
+  calendarType: CalendarType;
+  gender: Gender;
+  marketingAgreed: boolean;
+  privacyAgreed: boolean;
+  sensitiveDataAgreed: boolean;
+  termsAgreed: boolean;
+};
+
+export type SajuAnalysisStatus =
+  "COMPLETED" | "FAILED" | "PENDING" | "PROCESSING";
+
+export type CreateSajuAnalysisResponse = {
+  analysisId: number;
+  status: SajuAnalysisStatus;
 };

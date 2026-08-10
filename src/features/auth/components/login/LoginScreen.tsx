@@ -7,6 +7,7 @@ import { useState, type FormEvent } from "react";
 import { AuthApiError, login } from "@/features/auth/api/auth";
 import AuthPrimaryButton from "@/features/auth/components/common/AuthPrimaryButton";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useUserStore } from "@/store/useUserStore";
 
 type LoginScreenProps = {
   onPasswordReset: () => void;
@@ -18,6 +19,7 @@ export default function LoginScreen({
   onSignup,
 }: LoginScreenProps) {
   const router = useRouter();
+  const clearProfile = useUserStore((state) => state.clearProfile);
   const setTokens = useAuthStore((state) => state.setTokens);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
@@ -39,6 +41,7 @@ export default function LoginScreen({
         password,
         phoneNumber: phoneNumber.trim(),
       });
+      clearProfile();
       setTokens(tokens);
       router.replace("/");
     } catch (error) {
