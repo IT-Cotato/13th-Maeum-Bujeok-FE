@@ -6,6 +6,7 @@ import { MAIN_NAVIGATION_ITEMS } from "@/constants/navigation";
 import AccountMenuSection from "@/features/user/components/AccountMenuSection";
 import FiveElementGaugeSection from "@/features/user/components/FiveElementGaugeSection";
 import MyMenuSection from "@/features/user/components/MyMenuSection";
+import MemberName from "@/features/user/components/MemberName";
 import {
   CONVENIENCE_MENU_ITEMS,
   DEFAULT_FIVE_ELEMENT_GAUGES,
@@ -51,7 +52,7 @@ export default function MyPage() {
                 />
               </div>
               <p className="w-[75px] text-xl font-semibold leading-[22px]">
-                김마음 님
+                <MemberName /> 님
               </p>
             </div>
 

@@ -4,6 +4,7 @@ import { MAIN_NAVIGATION_ITEMS } from "@/constants/navigation";
 import EmotionSummarySection from "@/features/report/components/EmotionSummarySection";
 import NextWeekSection from "@/features/report/components/NextWeekSection";
 import SavedTalismanSection from "@/features/report/components/SavedTalismanSection";
+import MemberName from "@/features/user/components/MemberName";
 
 export default function ReportPage() {
   return (
@@ -24,7 +25,9 @@ export default function ReportPage() {
           </div>
 
           <section className="mt-[27px]">
-            <h2 className="text-xl font-semibold leading-[23px]">김마음 님</h2>
+            <h2 className="text-xl font-semibold leading-[23px]">
+              <MemberName /> 님
+            </h2>
             <div className="mt-2.5 flex gap-[25px] text-lg leading-[22px]">
               <ReportCount label="일기" value="4" />
               <ReportCount label="소각" value="2" />
