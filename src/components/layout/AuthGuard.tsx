@@ -7,7 +7,10 @@ import FeedbackScreen, {
   ErrorGhostIcon,
   LoadingFlameIcon,
 } from "@/components/common/FeedbackScreen";
-import { getMyProfile } from "@/features/user/api/profile";
+import {
+  getMyProfile,
+  isOnboardingRequiredError,
+} from "@/features/user/api/profile";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useUserStore } from "@/store/useUserStore";
 
@@ -55,9 +58,13 @@ export default function AuthGuard({ children }: AuthGuardProps) {
           setProfile(memberProfile);
         }
       })
-      .catch(() => {
+      .catch((error: unknown) => {
         if (useAuthStore.getState().accessToken) {
-          setProfileStatus("error");
+          setProfileStatus(
+            isOnboardingRequiredError(error)
+              ? "onboarding-required"
+              : "error",
+          );
         }
       });
   }, [
@@ -80,6 +87,10 @@ export default function AuthGuard({ children }: AuthGuardProps) {
     }
 
     if (!accessToken || profileStatus !== "success" || !profile) {
+      if (accessToken && profileStatus === "onboarding-required") {
+        router.replace("/onboarding");
+      }
+
       return;
     }
 
@@ -136,7 +147,12 @@ export default function AuthGuard({ children }: AuthGuardProps) {
     return children;
   }
 
-  if (!accessToken || profileStatus === "idle" || profileStatus === "loading") {
+  if (
+    !accessToken ||
+    profileStatus === "idle" ||
+    profileStatus === "loading" ||
+    profileStatus === "onboarding-required"
+  ) {
     return <AuthLoadingScreen />;
   }
 

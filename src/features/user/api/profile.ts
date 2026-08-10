@@ -6,11 +6,13 @@ import { apiClient } from "@/services/apiClient";
 
 export class ProfileApiError extends Error {
   code?: string;
+  status?: number;
 
-  constructor(message: string, code?: string) {
+  constructor(message: string, code?: string, status?: number) {
     super(message);
     this.name = "ProfileApiError";
     this.code = code;
+    this.status = status;
   }
 }
 
@@ -38,9 +40,17 @@ export async function getMyProfile(): Promise<MemberProfile> {
       throw new ProfileApiError(
         error.response?.data?.message || "사용자 정보를 불러오지 못했어요.",
         error.response?.data?.code,
+        error.response?.status,
       );
     }
 
     throw new ProfileApiError("사용자 정보를 불러오지 못했어요.");
   }
+}
+
+export function isOnboardingRequiredError(error: unknown): boolean {
+  return (
+    error instanceof ProfileApiError &&
+    (error.code === "MEMBER_003" || error.status === 404)
+  );
 }

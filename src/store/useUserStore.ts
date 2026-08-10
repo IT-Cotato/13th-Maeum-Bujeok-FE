@@ -4,7 +4,12 @@ import { create } from "zustand";
 
 import type { MemberProfile } from "@/features/user/types";
 
-export type ProfileStatus = "error" | "idle" | "loading" | "success";
+export type ProfileStatus =
+  | "error"
+  | "idle"
+  | "loading"
+  | "onboarding-required"
+  | "success";
 
 type UserStore = {
   clearProfile: () => void;

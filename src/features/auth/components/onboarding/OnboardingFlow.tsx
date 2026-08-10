@@ -55,13 +55,19 @@ export default function OnboardingFlow() {
 
   const currentView =
     view === "welcome" &&
-    profileStatus === "success" &&
-    profile &&
-    !profile.onboardingCompleted
+    (profileStatus === "onboarding-required" ||
+      (profileStatus === "success" &&
+        profile &&
+        !profile.onboardingCompleted))
       ? "member-onboarding"
       : view;
 
-  if (accessToken && view === "welcome" && profileStatus !== "success") {
+  if (
+    accessToken &&
+    view === "welcome" &&
+    profileStatus !== "success" &&
+    profileStatus !== "onboarding-required"
+  ) {
     return (
       <FeedbackScreen
         description="사용자 정보를 확인하고 있어요."
