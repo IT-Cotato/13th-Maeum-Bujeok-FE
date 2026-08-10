@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 
 import {
   AuthApiError,
+  login,
   sendSignupSms,
   signUp,
   verifySmsCode,
@@ -15,7 +15,10 @@ import DuplicateMemberDialog from "@/features/auth/components/signup/DuplicateMe
 import SajuProfileStep from "@/features/auth/components/signup/SajuProfileStep";
 import SignupSuccessScreen from "@/features/auth/components/signup/SignupSuccessScreen";
 import TermsStep from "@/features/auth/components/signup/TermsStep";
+import { useCompleteOnboarding } from "@/features/auth/hooks/useCompleteOnboarding";
 import type { SajuProfileDraft, SignUpTerms } from "@/features/auth/types";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useUserStore } from "@/store/useUserStore";
 
 type SignupStep = "terms" | "verification" | "password" | "success" | "saju";
 
@@ -32,7 +35,10 @@ const INITIAL_TERMS: SignUpTerms = {
 };
 
 export default function SignupFlow({ onExit }: SignupFlowProps) {
-  const router = useRouter();
+  const clearProfile = useUserStore((state) => state.clearProfile);
+  const setTokens = useAuthStore((state) => state.setTokens);
+  const { isSubmitting: isSavingOnboarding, submitOnboarding } =
+    useCompleteOnboarding();
   const [step, setStep] = useState<SignupStep>("terms");
   const [terms, setTerms] = useState<SignUpTerms>(INITIAL_TERMS);
   const [name, setName] = useState("");
@@ -140,14 +146,26 @@ export default function SignupFlow({ onExit }: SignupFlowProps) {
 
     try {
       await signUp({
-        marketingAgreed: terms.marketingAgreed,
         name: name.trim(),
         password,
         phoneNumber: phoneNumber.trim(),
-        privacyAgreed: terms.privacyAndSensitiveAgreed,
-        sensitiveDataAgreed: terms.privacyAndSensitiveAgreed,
-        termsAgreed: terms.termsAgreed,
       });
+
+      try {
+        const tokens = await login({
+          password,
+          phoneNumber: phoneNumber.trim(),
+        });
+        clearProfile();
+        setTokens(tokens);
+      } catch {
+        window.alert(
+          "회원가입은 완료되었어요. 로그인 후 기본정보를 입력해주세요.",
+        );
+        onExit();
+        return;
+      }
+
       setStep("success");
     } catch (error) {
       if (isDuplicateMemberError(error)) {
@@ -160,14 +178,12 @@ export default function SignupFlow({ onExit }: SignupFlowProps) {
     }
   };
 
-  const handleSajuConfirm = (profile: SajuProfileDraft) => {
-    // TODO(auth): Replace this draft with /api/members/saju after the signup
-    // response defines how the access token is returned.
-    sessionStorage.setItem(
-      "maeum-bujeok:saju-profile-draft",
-      JSON.stringify(profile),
-    );
-    router.push("/");
+  const handleSajuConfirm = async (profile: SajuProfileDraft) => {
+    try {
+      await submitOnboarding(profile, terms);
+    } catch (error) {
+      window.alert(getErrorMessage(error));
+    }
   };
 
   return (
@@ -222,7 +238,11 @@ export default function SignupFlow({ onExit }: SignupFlowProps) {
         <SignupSuccessScreen onSajuStart={() => setStep("saju")} />
       ) : null}
       {step === "saju" ? (
-        <SajuProfileStep onBack={handleBack} onConfirm={handleSajuConfirm} />
+        <SajuProfileStep
+          isSubmitting={isSavingOnboarding}
+          onBack={handleBack}
+          onConfirm={handleSajuConfirm}
+        />
       ) : null}
       {isDuplicateMember ? (
         <DuplicateMemberDialog
