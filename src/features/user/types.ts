@@ -6,6 +6,20 @@ export type FiveElementGaugeValue = {
   fillPercentage?: number;
 };
 
+export type SajuAnalysisStatus =
+  "COMPLETED" | "FAILED" | "PENDING" | "PROCESSING";
+
+export type FiveElementsBalance = Record<FiveElement, number>;
+
+export type SajuAnalysis = {
+  analysisId: number;
+  analyzedAt: string | null;
+  elements: FiveElementsBalance | null;
+  failureCode: string | null;
+  modelName: string | null;
+  status: SajuAnalysisStatus;
+};
+
 export type NotificationSettings = {
   diaryReminderEnabled: boolean;
   fortuneActionEnabled: boolean;

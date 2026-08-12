@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 
@@ -8,11 +10,38 @@ import FiveElementGaugeSection from "@/features/user/components/FiveElementGauge
 import MyMenuSection from "@/features/user/components/MyMenuSection";
 import {
   CONVENIENCE_MENU_ITEMS,
-  DEFAULT_FIVE_ELEMENT_GAUGES,
   SUPPORT_MENU_ITEMS,
 } from "@/features/user/constants";
+import { useLatestSajuAnalysis } from "@/features/user/hooks/useLatestSajuAnalysis";
+import type {
+  FiveElement,
+  FiveElementGaugeValue,
+  SajuAnalysisStatus,
+} from "@/features/user/types";
+
+const FIVE_ELEMENT_ORDER: FiveElement[] = [
+  "wood",
+  "fire",
+  "earth",
+  "metal",
+  "water",
+];
 
 export default function MyPage() {
+  const { analysis, error, isLoading } = useLatestSajuAnalysis();
+  const elements = analysis?.elements;
+  const gaugeValues: FiveElementGaugeValue[] | null = elements
+    ? FIVE_ELEMENT_ORDER.map((element) => ({
+        element,
+        percentage: elements[element],
+      }))
+    : null;
+  const gaugeStatusMessage = getGaugeStatusMessage(
+    analysis?.status,
+    error,
+    isLoading,
+  );
+
   return (
     <main className="h-dvh overflow-hidden bg-gray-100 text-foreground">
       <div className="relative mx-auto h-dvh w-full max-w-[393px] overflow-hidden bg-background">
@@ -63,7 +92,10 @@ export default function MyPage() {
             </button>
           </section>
 
-          <FiveElementGaugeSection values={DEFAULT_FIVE_ELEMENT_GAUGES} />
+          <FiveElementGaugeSection
+            statusMessage={gaugeStatusMessage}
+            values={gaugeValues}
+          />
           <MyMenuSection
             className="w-[164px]"
             items={CONVENIENCE_MENU_ITEMS}
@@ -77,4 +109,24 @@ export default function MyPage() {
       </div>
     </main>
   );
+}
+
+function getGaugeStatusMessage(
+  status: SajuAnalysisStatus | undefined,
+  error: string | null,
+  isLoading: boolean,
+): string {
+  if (error) {
+    return error;
+  }
+
+  if (isLoading || status === "PENDING" || status === "PROCESSING") {
+    return "오행 분석 결과를 불러오고 있어요.";
+  }
+
+  if (status === "FAILED") {
+    return "오행 분석을 완료하지 못했어요.";
+  }
+
+  return "오행 분석 결과를 불러왔어요.";
 }
