@@ -6,7 +6,7 @@ import type {
   GenerateWeeklyReportResponse,
   NextWeekFlow,
   NextWeekFlowStart,
-  ReportBurningList,
+  ReportBurning,
   WeeklyReportPeriod,
   WeeklyReportSummary,
 } from "@/features/report/types";
@@ -73,11 +73,21 @@ export async function getReportEmotionStats(
 export async function getReportBurnings(
   reportId: number,
   signal?: AbortSignal,
-): Promise<ReportBurningList> {
-  return getReportData<ReportBurningList>(
+): Promise<ReportBurning[]> {
+  const data = await getReportData<unknown>(
     `${REPORTS_PATH}/weekly/${reportId}/burnings`,
     signal,
   );
+
+  if (Array.isArray(data)) {
+    return data as ReportBurning[];
+  }
+
+  if (isRecord(data) && Array.isArray(data.items)) {
+    return data.items as ReportBurning[];
+  }
+
+  throw new ReportApiError("소각 기록 응답 형식이 올바르지 않아요.");
 }
 
 export async function getReportNextWeekFlow(
@@ -117,6 +127,10 @@ export async function getNextWeekFlow(
 }
 
 type QueryParams = Record<string, number | string>;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
 
 async function getReportData<TData>(
   path: string,
