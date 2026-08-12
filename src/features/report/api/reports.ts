@@ -64,10 +64,18 @@ export async function getReportEmotionStats(
   reportId: number,
   signal?: AbortSignal,
 ): Promise<EmotionStat[]> {
-  return getReportData<EmotionStat[]>(
+  const data = await getReportData<unknown>(
     `${REPORTS_PATH}/weekly/${reportId}/emotion-stats`,
     signal,
   );
+
+  const stats = getArrayField(data, ["emotionStats", "items", "stats"]);
+
+  if (!stats || !stats.every(isEmotionStat)) {
+    throw new ReportApiError("감정 통계 응답 형식이 올바르지 않아요.");
+  }
+
+  return stats;
 }
 
 export async function getReportBurnings(
@@ -79,12 +87,10 @@ export async function getReportBurnings(
     signal,
   );
 
-  if (Array.isArray(data)) {
-    return data as ReportBurning[];
-  }
+  const burnings = getArrayField(data, ["burnings", "items"]);
 
-  if (isRecord(data) && Array.isArray(data.items)) {
-    return data.items as ReportBurning[];
+  if (burnings && burnings.every(isReportBurning)) {
+    return burnings;
   }
 
   throw new ReportApiError("소각 기록 응답 형식이 올바르지 않아요.");
@@ -130,6 +136,42 @@ type QueryParams = Record<string, number | string>;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
+}
+
+function getArrayField(value: unknown, fieldNames: string[]): unknown[] | null {
+  if (Array.isArray(value)) {
+    return value;
+  }
+
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  for (const fieldName of fieldNames) {
+    const field = value[fieldName];
+
+    if (Array.isArray(field)) {
+      return field;
+    }
+  }
+
+  return null;
+}
+
+function isEmotionStat(value: unknown): value is EmotionStat {
+  return (
+    isRecord(value) &&
+    typeof value.emotion === "string" &&
+    typeof value.count === "number"
+  );
+}
+
+function isReportBurning(value: unknown): value is ReportBurning {
+  return (
+    isRecord(value) &&
+    typeof value.burningId === "number" &&
+    typeof value.burnedAt === "string"
+  );
 }
 
 async function getReportData<TData>(

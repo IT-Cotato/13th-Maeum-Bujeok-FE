@@ -4,7 +4,13 @@ export type EmotionChartItem = EmotionStat & {
   percentage: number;
 };
 
-export function toEmotionChartItems(stats: EmotionStat[]): EmotionChartItem[] {
+export function toEmotionChartItems(
+  stats: EmotionStat[] | null | undefined,
+): EmotionChartItem[] {
+  if (!Array.isArray(stats)) {
+    return [];
+  }
+
   const total = stats.reduce((sum, stat) => sum + stat.count, 0);
 
   if (total === 0) {
@@ -20,7 +26,11 @@ export function toEmotionChartItems(stats: EmotionStat[]): EmotionChartItem[] {
     }));
 }
 
-export function getDiaryCount(stats: EmotionStat[]): number {
+export function getDiaryCount(stats: EmotionStat[] | null | undefined): number {
+  if (!Array.isArray(stats)) {
+    return 0;
+  }
+
   return stats.reduce((sum, stat) => sum + stat.count, 0);
 }
 
