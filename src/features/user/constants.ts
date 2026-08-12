@@ -48,12 +48,12 @@ export const FIVE_ELEMENT_META: Record<FiveElement, FiveElementMeta> = {
   },
 };
 
-export const DEFAULT_FIVE_ELEMENT_GAUGES: FiveElementGaugeValue[] = [
-  { element: "wood", percentage: 28, fillPercentage: 39 },
-  { element: "fire", percentage: 88, fillPercentage: 86.333 },
-  { element: "earth", percentage: 50, fillPercentage: 50.667 },
-  { element: "metal", percentage: 25, fillPercentage: 25 },
-  { element: "water", percentage: 10, fillPercentage: 11 },
+export const EMPTY_FIVE_ELEMENT_GAUGES: FiveElementGaugeValue[] = [
+  { element: "wood", percentage: 0 },
+  { element: "fire", percentage: 0 },
+  { element: "earth", percentage: 0 },
+  { element: "metal", percentage: 0 },
+  { element: "water", percentage: 0 },
 ];
 
 export const CONVENIENCE_MENU_ITEMS: MyMenuItem[] = [
