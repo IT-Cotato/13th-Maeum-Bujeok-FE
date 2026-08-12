@@ -29,3 +29,23 @@ export type GeneratedTalisman = {
 export type SavedTalisman = GeneratedTalisman & {
   savedAt: string;
 };
+
+export type CreateBurningRequest =
+  | {
+      content: string;
+      diaryId?: never;
+      sourceType: "DIRECT";
+    }
+  | {
+      content?: never;
+      diaryId: number;
+      sourceType: "DIARY";
+    };
+
+export type CreateBurningResponse = {
+  analysisStatus:
+    "COMPLETED" | "FAILED" | "FALLBACK_COMPLETED" | "PENDING" | "PROCESSING";
+  burnedAt: string;
+  burningId: number;
+  sourceType: "DIARY" | "DIRECT";
+};

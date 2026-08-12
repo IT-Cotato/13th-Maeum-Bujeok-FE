@@ -9,7 +9,12 @@ import DiaryCalendar, {
 } from "@/components/common/DiaryCalendar";
 import BottomNavigation from "@/components/layout/BottomNavigation";
 import { MAIN_NAVIGATION_ITEMS } from "@/constants/navigation";
+import { createBurning } from "@/features/burn/api/burnings";
 import BurnedDiaryDialog from "@/features/burn/components/BurnedDiaryDialog";
+import type { CreateBurningRequest } from "@/features/burn/types";
+import { useDiariesByDate } from "@/features/diary/hooks/useDiariesByDate";
+import { useDiaryCalendar } from "@/features/diary/hooks/useDiaryCalendar";
+import type { DiaryCalendarDay, DiarySummary } from "@/features/diary/types";
 import {
   createMonthOptions,
   getMonthFromDate,
@@ -17,10 +22,6 @@ import {
   toDiaryArchiveEntries,
   toDiaryCalendarEntries,
 } from "@/features/diary/utils";
-import {
-  type DiaryEntryRecord,
-  useDiaryEntriesStore,
-} from "@/store/useDiaryEntriesStore";
 
 type BurnTab = "emotion" | "diary";
 
@@ -40,15 +41,16 @@ export default function BurnPage() {
   const [selectedImage, setSelectedImage] = useState<SelectedImage | null>(
     null,
   );
-  const [diaryEntries, setDiaryEntries] = useState<
-    Record<string, DiaryEntryRecord[]>
-  >({});
   const [selectedDiaryDate, setSelectedDiaryDate] = useState<string | null>(
     null,
   );
   const [selectedDiaryId, setSelectedDiaryId] = useState<string | null>(null);
   const [selectedMonth, setSelectedMonth] = useState(getMonthFromDate(TODAY));
   const [burnedDiaryDate, setBurnedDiaryDate] = useState<string | null>(null);
+  const [requestError, setRequestError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { days, error: calendarError } = useDiaryCalendar(selectedMonth);
+  const { diaries, error: diariesError } = useDiariesByDate(selectedDiaryDate);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const selectedImageUrlRef = useRef<string | null>(null);
   const burnButtonPositionClass =
@@ -59,11 +61,6 @@ export default function BurnPage() {
       : selectedDiaryId !== null
         ? "mt-[25px]"
         : "fixed bottom-[calc(111px+env(safe-area-inset-bottom))] left-1/2 z-40 w-[calc(100%-48px)] max-w-[347px] -translate-x-1/2";
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from an external store (localStorage) that isn't available during render
-    setDiaryEntries(useDiaryEntriesStore.getState().entries);
-  }, []);
 
   useEffect(() => {
     return () => {
@@ -104,12 +101,14 @@ export default function BurnPage() {
     setSelectedImage(null);
   };
 
-  const handleBurnClick = () => {
-    const selectedDayEntries = selectedDiaryDate
-      ? (diaryEntries[selectedDiaryDate] ?? [])
-      : [];
-    const selectedEntry = selectedDayEntries.find(
-      (entry) => entry.id === selectedDiaryId && !entry.isBurned,
+  const handleBurnClick = async () => {
+    if (isSubmitting) {
+      return;
+    }
+
+    const selectedEntry = diaries.find(
+      (entry) =>
+        entry.diaryId === Number(selectedDiaryId) && entry.status !== "BURNED",
     );
     const trimmedBurnText = burnText.trim();
 
@@ -123,26 +122,47 @@ export default function BurnPage() {
       return;
     }
 
-    const content =
-      activeTab === "diary" ? (selectedEntry?.content ?? "") : trimmedBurnText;
+    let burningRequest: CreateBurningRequest;
+    let pendingContent: string;
+    let pendingDiaryId: number | null = null;
 
-    if (activeTab === "diary" && selectedDiaryDate && selectedEntry) {
-      useDiaryEntriesStore
-        .getState()
-        .burnEntry(selectedDiaryDate, selectedEntry.id);
+    if (activeTab === "diary" && selectedEntry) {
+      burningRequest = {
+        diaryId: selectedEntry.diaryId,
+        sourceType: "DIARY",
+      };
+      pendingContent = selectedEntry.content;
+      pendingDiaryId = selectedEntry.diaryId;
+    } else {
+      burningRequest = { content: trimmedBurnText, sourceType: "DIRECT" };
+      pendingContent = trimmedBurnText;
     }
 
-    sessionStorage.setItem(
-      "maeum-bujeok:pending-burn",
-      JSON.stringify({
-        content,
-        diaryId: activeTab === "diary" ? (selectedEntry?.id ?? null) : null,
-        imageName: activeTab === "emotion" ? selectedImage?.name : null,
-        recordedDate: activeTab === "diary" ? selectedDiaryDate : null,
-        type: activeTab,
-      }),
-    );
-    router.push("/burn/result");
+    setIsSubmitting(true);
+    setRequestError(null);
+
+    try {
+      const response = await createBurning(burningRequest);
+
+      sessionStorage.setItem(
+        "maeum-bujeok:pending-burn",
+        JSON.stringify({
+          burningId: response.burningId,
+          content: pendingContent,
+          diaryId: pendingDiaryId,
+          imageName: activeTab === "emotion" ? selectedImage?.name : null,
+          recordedDate: activeTab === "diary" ? selectedDiaryDate : null,
+          type: activeTab,
+        }),
+      );
+      router.push("/burn/result");
+    } catch (error) {
+      setRequestError(
+        error instanceof Error ? error.message : "소각을 시작하지 못했어요.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleBurnTextChange = (value: string) => {
@@ -204,7 +224,8 @@ export default function BurnPage() {
             />
           ) : (
             <DiarySelect
-              entries={diaryEntries}
+              days={days}
+              diaries={diaries}
               onBurnedSelect={(entry) => setBurnedDiaryDate(entry.date)}
               onDiarySelect={setSelectedDiaryId}
               onMonthChange={handleMonthChange}
@@ -225,11 +246,21 @@ export default function BurnPage() {
 
         <button
           className={`flex h-[57px] w-full items-center justify-center rounded-lg bg-orange-500 text-xl font-semibold leading-[23px] text-white transition-opacity active:opacity-90 ${burnButtonPositionClass}`}
-          onClick={handleBurnClick}
+          disabled={isSubmitting}
+          onClick={() => void handleBurnClick()}
           type="button"
         >
-          소각하기
+          {isSubmitting ? "소각 준비 중" : "소각하기"}
         </button>
+
+        {requestError || calendarError || diariesError ? (
+          <p
+            className="relative z-30 mt-3 text-center text-sm text-red-500"
+            role="alert"
+          >
+            {requestError ?? calendarError ?? diariesError}
+          </p>
+        ) : null}
 
         <BottomNavigation activeValue="burn" items={MAIN_NAVIGATION_ITEMS} />
 
@@ -324,10 +355,7 @@ type SelectedImagePreviewProps = {
   onRemove: () => void;
 };
 
-function SelectedImagePreview({
-  image,
-  onRemove,
-}: SelectedImagePreviewProps) {
+function SelectedImagePreview({ image, onRemove }: SelectedImagePreviewProps) {
   return (
     <div className="relative mt-[26px] h-[97px] w-[102px] overflow-hidden rounded-[4px] border border-orange-400 bg-gray-100">
       <Image
@@ -355,7 +383,8 @@ function SelectedImagePreview({
 }
 
 type DiarySelectProps = {
-  entries: Record<string, DiaryEntryRecord[]>;
+  days: DiaryCalendarDay[];
+  diaries: DiarySummary[];
   onBurnedSelect: (entry: DiaryCalendarEntry) => void;
   onDiarySelect: (id: string) => void;
   onMonthChange: (month: string) => void;
@@ -366,7 +395,8 @@ type DiarySelectProps = {
 };
 
 function DiarySelect({
-  entries,
+  days,
+  diaries,
   onBurnedSelect,
   onDiarySelect,
   onMonthChange,
@@ -375,13 +405,11 @@ function DiarySelect({
   selectedDiaryId,
   selectedMonth,
 }: DiarySelectProps) {
-  const calendarEntries = toDiaryCalendarEntries(entries);
-  const selectedDayEntries = selectedDate
-    ? toDiaryArchiveEntries(selectedDate, entries[selectedDate] ?? [])
-    : [];
+  const calendarEntries = toDiaryCalendarEntries(days);
+  const selectedDayEntries = toDiaryArchiveEntries(diaries);
 
   return (
-    <div className="size-full">
+    <div className="size-full pb-[92px]">
       <DiaryCalendar
         entries={calendarEntries}
         month={selectedMonth}
