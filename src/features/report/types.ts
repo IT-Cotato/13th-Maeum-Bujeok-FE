@@ -76,3 +76,25 @@ export type WeeklyReportView = {
   nextWeekFlow: NextWeekFlow | null;
   summary: WeeklyReportSummary;
 };
+
+export type TalismanGenerationStatus = "COMPLETED" | "FAILED" | "PROCESSING";
+
+export type TalismanItem = {
+  burnRitualId: number;
+  createdAt: string;
+  designType: string | null;
+  generationStatus: TalismanGenerationStatus;
+  imageUrl: string | null;
+  message: string | null;
+  recordedAt: string;
+  talismanId: number;
+  title: string | null;
+  usedSaju: string | null;
+};
+
+export type TalismanList = {
+  count: number;
+  hasNext: boolean;
+  items: TalismanItem[];
+  nextCursor: number | null;
+};
