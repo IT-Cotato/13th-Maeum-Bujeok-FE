@@ -42,12 +42,6 @@ export type ReportBurning = {
   sourceType: "DIARY" | "DIRECT";
 };
 
-export type ReportBurningList = {
-  hasNext: boolean;
-  items: ReportBurning[];
-  nextCursor: number | null;
-};
-
 export type NextWeekFlowStatus = "COMPLETED" | "FAILED" | "PROCESSING";
 
 export type NextWeekFlow = {

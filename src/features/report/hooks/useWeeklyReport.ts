@@ -162,7 +162,7 @@ export function useWeeklyReport() {
           error: null,
           isLoading: false,
           report: {
-            burnCount: burnings.items.length,
+            burnCount: burnings.length,
             emotionStats,
             nextWeekFlow,
             summary,
