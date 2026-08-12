@@ -2,6 +2,12 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
+import { createDiary, updateDiary } from "@/features/diary/api/diaries";
+import {
+  cleanupDiaryUploads,
+  uploadDiaryFiles,
+  validateDiaryImage,
+} from "@/features/diary/api/uploads";
 import DiaryExitDialog from "@/features/diary/components/DiaryExitDialog";
 import DiaryImageThumbnail from "@/features/diary/components/DiaryImageThumbnail";
 import EmotionAvatar from "@/features/diary/components/EmotionAvatar";
@@ -11,67 +17,50 @@ import {
   EMOTIONS,
   type EmotionId,
 } from "@/features/diary/constants";
+import { useDiaryDetail } from "@/features/diary/hooks/useDiaryDetail";
+import type { EditableDiaryImage } from "@/features/diary/types";
 import {
   getCurrentTimeLabel,
   getDiaryShortDateParts,
   getTodayDateString,
   pickBySeed,
+  toDiaryEmotionCode,
+  toEmotionId,
 } from "@/features/diary/utils";
 import { useDiaryDraftStore } from "@/store/useDiaryDraftStore";
-import { useDiaryEntriesStore } from "@/store/useDiaryEntriesStore";
-import { useDiarySavedEntryStore } from "@/store/useDiarySavedEntryStore";
 
 const TODAY = getTodayDateString();
 const MAX_IMAGES = 3;
 const MAX_LENGTH = 1000;
 const IMAGE_LIMIT_MESSAGE = "사진은 최대 3장까지 첨부 가능합니다.";
 
-type DiaryImage = {
-  id: string;
-  url: string;
-};
-
 export default function DiaryWriteScreen() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const diaryDate = searchParams.get("date") ?? TODAY;
   const editEntryId = searchParams.get("id");
+  const parsedEditEntryId = editEntryId ? Number(editEntryId) : null;
+  const editDiaryId =
+    parsedEditEntryId && Number.isInteger(parsedEditEntryId)
+      ? parsedEditEntryId
+      : null;
+  const { diary: diaryForEdit, error: detailError } = useDiaryDetail(
+    editDiaryId,
+    { pollAnalysis: false },
+  );
   const initialEmotionId =
     EMOTIONS.find((emotion) => emotion.id === searchParams.get("emotion"))
       ?.id ?? EMOTIONS[0].id;
-  // 화면5의 "수정" 진입처럼 기존 항목을 편집하러 온 경우(id 파라미터가 있는 경우)만
-  // 이전 내용을 채워 넣는다. id가 없으면 "+"로 같은 날짜에 새 일기를 추가하는
-  // 경우이므로, 마지막으로 저장한 항목이 우연히 같은 날짜라도 절대 끌어오지 않는다.
-  // 방금 저장한 항목이면 세션 내 임시 저장소(사진 포함)에서, 예전에 저장된
-  // 항목이면 영구 저장소에서 내용을 가져온다. 둘 다 render 중 바로 읽어도
-  // 안전하다(초기값으로만 사용, 이후엔 재동기화하지 않는다).
-  const ephemeralEntry = useDiarySavedEntryStore.getState().entry;
-  const ephemeralEntryForEdit =
-    editEntryId &&
-    ephemeralEntry?.date === diaryDate &&
-    ephemeralEntry.id === editEntryId
-      ? ephemeralEntry
-      : null;
-  const persistedEntryForEdit = editEntryId
-    ? useDiaryEntriesStore
-        .getState()
-        .entries[diaryDate]?.find((entry) => entry.id === editEntryId)
-    : undefined;
-
   const placeholder = pickBySeed(DIARY_PLACEHOLDER_PROMPTS, diaryDate);
   const { datePart, weekdayPart } = getDiaryShortDateParts(diaryDate);
   const [emotionId, setEmotionId] = useState<EmotionId>(initialEmotionId);
   const [isEmotionPopoverOpen, setIsEmotionPopoverOpen] = useState(false);
-  const [content, setContent] = useState(
-    ephemeralEntryForEdit?.content ?? persistedEntryForEdit?.content ?? "",
-  );
-  const [images, setImages] = useState<DiaryImage[]>(
-    () =>
-      ephemeralEntryForEdit?.imageUrls.map((url) => ({ id: url, url })) ?? [],
-  );
-  const [isLimitMessageVisible, setIsLimitMessageVisible] = useState(false);
+  const [content, setContent] = useState("");
+  const [images, setImages] = useState<EditableDiaryImage[]>([]);
+  const [limitMessage, setLimitMessage] = useState<string | null>(null);
   const [isExitDialogOpen, setIsExitDialogOpen] = useState(false);
   const [isResumeDialogOpen, setIsResumeDialogOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const selectedEmotion =
     EMOTIONS.find((emotion) => emotion.id === emotionId) ?? EMOTIONS[0];
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -80,11 +69,31 @@ export default function DiaryWriteScreen() {
   );
   const saveDraft = useDiaryDraftStore((state) => state.saveDraft);
   const removeDraft = useDiaryDraftStore((state) => state.removeDraft);
-  const imagesRef = useRef<DiaryImage[]>(images);
+  const imagesRef = useRef<EditableDiaryImage[]>(images);
+  const hasInitializedEditRef = useRef(false);
 
   useEffect(() => {
     imagesRef.current = images;
   }, [images]);
+
+  useEffect(() => {
+    if (!diaryForEdit || hasInitializedEditRef.current) {
+      return;
+    }
+
+    hasInitializedEditRef.current = true;
+    setContent(diaryForEdit.content);
+    setEmotionId(toEmotionId(diaryForEdit.selectedEmotion));
+    setImages(
+      [...diaryForEdit.images]
+        .sort((a, b) => a.sortOrder - b.sortOrder)
+        .map((image) => ({
+          kind: "existing" as const,
+          uploadId: image.uploadId,
+          url: image.url,
+        })),
+    );
+  }, [diaryForEdit]);
 
   useEffect(() => {
     return () => {
@@ -92,13 +101,8 @@ export default function DiaryWriteScreen() {
         clearTimeout(limitMessageTimeoutRef.current);
       }
 
-      // 저장 완료 화면(screen 5)이 계속 써야 하는 이미지는 지우지 않는다.
-      const keepUrls = new Set(
-        useDiarySavedEntryStore.getState().entry?.imageUrls ?? [],
-      );
-
       for (const image of imagesRef.current) {
-        if (!keepUrls.has(image.url)) {
+        if (image.kind === "new") {
           URL.revokeObjectURL(image.url);
         }
       }
@@ -108,25 +112,30 @@ export default function DiaryWriteScreen() {
   useEffect(() => {
     // localStorage-backed store: only knowable client-side, so this reads it
     // after mount instead of during render to avoid an SSR hydration mismatch.
-    const existingDraft = useDiaryDraftStore.getState().drafts[diaryDate];
+    const existingDraft = editDiaryId
+      ? undefined
+      : useDiaryDraftStore.getState().drafts[diaryDate];
 
     if (existingDraft) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from an external store (localStorage) that isn't available during render
       setIsResumeDialogOpen(true);
     }
-  }, [diaryDate]);
+  }, [diaryDate, editDiaryId]);
 
-  const isSaveEnabled = content.length > 0;
+  const isSaveEnabled =
+    content.trim().length > 0 &&
+    !isSaving &&
+    (!editDiaryId || Boolean(diaryForEdit));
 
-  const showLimitMessage = () => {
-    setIsLimitMessageVisible(true);
+  const showLimitMessage = (message = IMAGE_LIMIT_MESSAGE) => {
+    setLimitMessage(message);
 
     if (limitMessageTimeoutRef.current) {
       clearTimeout(limitMessageTimeoutRef.current);
     }
 
     limitMessageTimeoutRef.current = setTimeout(() => {
-      setIsLimitMessageVisible(false);
+      setLimitMessage(null);
     }, 2500);
   };
 
@@ -152,12 +161,23 @@ export default function DiaryWriteScreen() {
       showLimitMessage();
     }
 
-    const newImages: DiaryImage[] = Array.from(files)
-      .slice(0, remainingSlots)
-      .map((file) => ({
-        id: `${file.name}-${file.lastModified}-${Math.random().toString(36).slice(2)}`,
-        url: URL.createObjectURL(file),
-      }));
+    const newImages: EditableDiaryImage[] = [];
+
+    for (const file of Array.from(files).slice(0, remainingSlots)) {
+      try {
+        validateDiaryImage(file);
+        newImages.push({
+          file,
+          id: `${file.name}-${file.lastModified}-${Math.random().toString(36).slice(2)}`,
+          kind: "new",
+          url: URL.createObjectURL(file),
+        });
+      } catch (error) {
+        showLimitMessage(
+          error instanceof Error ? error.message : "사진을 첨부할 수 없어요.",
+        );
+      }
+    }
 
     setImages((current) => [...current, ...newImages]);
     event.target.value = "";
@@ -165,13 +185,13 @@ export default function DiaryWriteScreen() {
 
   const handleRemoveImage = (id: string) => {
     setImages((current) => {
-      const target = current.find((image) => image.id === id);
+      const target = current.find((image) => getEditableImageId(image) === id);
 
-      if (target) {
+      if (target?.kind === "new") {
         URL.revokeObjectURL(target.url);
       }
 
-      return current.filter((image) => image.id !== id);
+      return current.filter((image) => getEditableImageId(image) !== id);
     });
   };
 
@@ -222,36 +242,54 @@ export default function DiaryWriteScreen() {
     setIsResumeDialogOpen(false);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!isSaveEnabled) {
       return;
     }
 
-    removeDraft(diaryDate);
+    setIsSaving(true);
+    let newUploadIds: string[] = [];
 
-    let savedId: string;
+    try {
+      const newFiles = images.flatMap((image) =>
+        image.kind === "new" ? [image.file] : [],
+      );
+      newUploadIds = await uploadDiaryFiles(newFiles);
+      let newUploadIndex = 0;
+      const imageUploadIds = images.map((image) => {
+        if (image.kind === "existing") {
+          return image.uploadId;
+        }
 
-    if (editEntryId) {
-      useDiaryEntriesStore
-        .getState()
-        .updateEntry(diaryDate, editEntryId, { content, emotionId });
-      savedId = editEntryId;
-    } else {
-      savedId = useDiaryEntriesStore
-        .getState()
-        .addEntry(diaryDate, { content, emotionId });
+        const uploadId = newUploadIds[newUploadIndex];
+        newUploadIndex += 1;
+        return uploadId;
+      });
+
+      const savedDiary = editDiaryId
+        ? await updateDiary(editDiaryId, {
+            content: content.trim(),
+            imageUploadIds,
+            selectedEmotion: toDiaryEmotionCode(emotionId),
+          })
+        : await createDiary({
+            content: content.trim(),
+            imageUploadIds,
+            recordedDate: diaryDate,
+            selectedEmotion: toDiaryEmotionCode(emotionId),
+          });
+
+      removeDraft(diaryDate);
+      router.push(
+        `/diary/new/complete?id=${savedDiary.diaryId}${editDiaryId ? "" : "&created=1"}`,
+      );
+    } catch (error) {
+      await cleanupDiaryUploads(newUploadIds);
+      window.alert(
+        error instanceof Error ? error.message : "일기를 저장하지 못했어요.",
+      );
+      setIsSaving(false);
     }
-
-    useDiarySavedEntryStore.getState().setEntry({
-      content,
-      date: diaryDate,
-      emotionId,
-      id: savedId,
-      imageUrls: images.map((image) => image.url),
-    });
-    router.push(
-      `/diary/new/complete?date=${diaryDate}&emotion=${emotionId}&id=${savedId}`,
-    );
   };
 
   return (
@@ -300,8 +338,9 @@ export default function DiaryWriteScreen() {
             <CameraIcon />
           </button>
           <input
-            accept="image/*"
+            accept="image/jpeg,image/png,image/webp"
             className="hidden"
+            multiple
             onChange={handleFileChange}
             ref={fileInputRef}
             type="file"
@@ -338,8 +377,8 @@ export default function DiaryWriteScreen() {
             {images.map((image) => (
               <DiaryImageThumbnail
                 alt="첨부한 사진"
-                key={image.id}
-                onRemove={() => handleRemoveImage(image.id)}
+                key={getEditableImageId(image)}
+                onRemove={() => handleRemoveImage(getEditableImageId(image))}
                 src={image.url}
               />
             ))}
@@ -353,18 +392,24 @@ export default function DiaryWriteScreen() {
               : "bg-gray-200 text-gray-400"
           }`}
           disabled={!isSaveEnabled}
-          onClick={handleSave}
+          onClick={() => void handleSave()}
           type="button"
         >
-          저장
+          {isSaving ? "저장 중" : "저장"}
         </button>
 
-        {isLimitMessageVisible ? (
+        {detailError ? (
+          <p className="mt-3 text-center text-sm text-red-500" role="alert">
+            {detailError}
+          </p>
+        ) : null}
+
+        {limitMessage ? (
           <p
             className="pointer-events-none absolute bottom-[calc(110px+env(safe-area-inset-bottom))] left-1/2 w-[calc(100%-48px)] max-w-[347px] -translate-x-1/2 rounded-lg bg-[rgba(18,18,18,0.8)] px-4 py-3 text-center text-[13px] text-white"
             role="alert"
           >
-            {IMAGE_LIMIT_MESSAGE}
+            {limitMessage}
           </p>
         ) : null}
 
@@ -396,6 +441,10 @@ export default function DiaryWriteScreen() {
   );
 }
 
+function getEditableImageId(image: EditableDiaryImage): string {
+  return image.kind === "existing" ? image.uploadId : image.id;
+}
+
 function BackIcon() {
   return (
     <svg aria-hidden="true" className="size-7" fill="none" viewBox="0 0 28 28">
@@ -412,14 +461,25 @@ function BackIcon() {
 
 function CameraIcon() {
   return (
-    <svg aria-hidden="true" className="size-[21px]" fill="none" viewBox="0 0 21 21">
+    <svg
+      aria-hidden="true"
+      className="size-[21px]"
+      fill="none"
+      viewBox="0 0 21 21"
+    >
       <path
         d="M7.1 5.2 8.4 3.5h4.2l1.3 1.7h2.6c1 0 1.8.8 1.8 1.8v8.1c0 1-.8 1.8-1.8 1.8h-12c-1 0-1.8-.8-1.8-1.8V7c0-1 .8-1.8 1.8-1.8h2.6Z"
         stroke="currentColor"
         strokeLinejoin="round"
         strokeWidth="1.8"
       />
-      <circle cx="10.5" cy="11.1" r="3.1" stroke="currentColor" strokeWidth="1.8" />
+      <circle
+        cx="10.5"
+        cy="11.1"
+        r="3.1"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
     </svg>
   );
 }

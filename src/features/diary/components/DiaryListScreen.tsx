@@ -2,13 +2,15 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import DiaryArchiveCard from "@/components/common/DiaryArchiveCard";
 import DiaryCalendar from "@/components/common/DiaryCalendar";
 import BottomNavigation from "@/components/layout/BottomNavigation";
 import { MAIN_NAVIGATION_ITEMS } from "@/constants/navigation";
 import BurnedEntryDetailDialog from "@/features/diary/components/BurnedEntryDetailDialog";
 import PageHeader from "@/features/diary/components/PageHeader";
+import { useDiariesByDate } from "@/features/diary/hooks/useDiariesByDate";
+import { useDiaryCalendar } from "@/features/diary/hooks/useDiaryCalendar";
 import {
   createMonthOptions,
   getMonthFromDate,
@@ -16,10 +18,6 @@ import {
   toDiaryArchiveEntries,
   toDiaryCalendarEntries,
 } from "@/features/diary/utils";
-import {
-  type DiaryEntryRecord,
-  useDiaryEntriesStore,
-} from "@/store/useDiaryEntriesStore";
 
 const TODAY = getTodayDateString();
 const CALENDAR_MONTHS = createMonthOptions("2025-01", 36);
@@ -28,22 +26,13 @@ export default function DiaryListScreen() {
   const router = useRouter();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [month, setMonth] = useState(getMonthFromDate(TODAY));
-  const [entries, setEntries] = useState<Record<string, DiaryEntryRecord[]>>(
-    {},
-  );
   const [pendingBurnedEntryId, setPendingBurnedEntryId] = useState<
     string | null
   >(null);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from an external store (localStorage) that isn't available during render
-    setEntries(useDiaryEntriesStore.getState().entries);
-  }, []);
-
-  const calendarEntries = toDiaryCalendarEntries(entries);
-  const selectedDayEntries = selectedDate
-    ? toDiaryArchiveEntries(selectedDate, entries[selectedDate] ?? [])
-    : [];
+  const { days, error: calendarError } = useDiaryCalendar(month);
+  const { diaries, error: diariesError } = useDiariesByDate(selectedDate);
+  const calendarEntries = toDiaryCalendarEntries(days);
+  const selectedDayEntries = toDiaryArchiveEntries(diaries);
 
   const handleWriteClick = () => {
     router.push(`/diary/new?date=${selectedDate ?? TODAY}`);
@@ -54,23 +43,19 @@ export default function DiaryListScreen() {
       return;
     }
 
-    const rawEntry = entries[selectedDate]?.find((entry) => entry.id === id);
+    const rawEntry = diaries.find((entry) => entry.diaryId === Number(id));
 
     if (!rawEntry) {
       return;
     }
 
-    router.push(
-      `/diary/new/complete?date=${selectedDate}&emotion=${rawEntry.emotionId}&id=${id}`,
-    );
+    router.push(`/diary/new/complete?id=${rawEntry.diaryId}`);
   };
 
   const handleViewDetail = (id: string) => {
-    const rawEntry = selectedDate
-      ? entries[selectedDate]?.find((entry) => entry.id === id)
-      : undefined;
+    const rawEntry = diaries.find((entry) => entry.diaryId === Number(id));
 
-    if (rawEntry?.isBurned) {
+    if (rawEntry?.status === "BURNED") {
       setPendingBurnedEntryId(id);
       return;
     }
@@ -89,7 +74,10 @@ export default function DiaryListScreen() {
             month={month}
             monthOptions={CALENDAR_MONTHS}
             onBurnedSelect={(entry) => setSelectedDate(entry.date)}
-            onMonthChange={setMonth}
+            onMonthChange={(nextMonth) => {
+              setMonth(nextMonth);
+              setSelectedDate(null);
+            }}
             onSelect={setSelectedDate}
             selectedDate={selectedDate}
           />
@@ -100,6 +88,12 @@ export default function DiaryListScreen() {
             entries={selectedDayEntries}
             onViewDetail={handleViewDetail}
           />
+        ) : null}
+
+        {calendarError || diariesError ? (
+          <p className="mt-4 text-center text-sm text-red-500" role="alert">
+            {calendarError ?? diariesError}
+          </p>
         ) : null}
 
         <div className="pointer-events-none fixed inset-x-0 bottom-[125px] z-[60] mx-auto w-full max-w-[395px]">
