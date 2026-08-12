@@ -36,6 +36,10 @@ export default function BurnResultPage() {
     router.push("/burn/fortune");
   };
 
+  const handleViewLater = () => {
+    router.replace("/burn");
+  };
+
   return (
     <main className="h-dvh overflow-hidden bg-purple-500 text-white">
       <div
@@ -71,12 +75,12 @@ export default function BurnResultPage() {
 
         <section className="absolute left-1/2 top-[139px] z-30 w-[223px] -translate-x-1/2 text-center">
           <h2 className="text-[28px] font-semibold leading-[35px] text-gray-100">
-            감정을 지워
+            감정을 태워
             <br />
             소각해주세요.
           </h2>
           <p className="mt-2.5 text-[15px] font-medium leading-normal text-gray-400">
-            불꽃을 클릭해 감정을 소각해보세요!
+            불꽃을 터치해 감정을 소각해보세요!
           </p>
         </section>
 
@@ -185,7 +189,7 @@ export default function BurnResultPage() {
 
         {isComplete ? (
           <BurnCompleteDialog
-            onClose={() => setBurnStep(0)}
+            onLater={handleViewLater}
             onMove={handleMoveToFortune}
           />
         ) : null}
@@ -195,11 +199,11 @@ export default function BurnResultPage() {
 }
 
 type BurnCompleteDialogProps = {
-  onClose: () => void;
+  onLater: () => void;
   onMove: () => void;
 };
 
-function BurnCompleteDialog({ onClose, onMove }: BurnCompleteDialogProps) {
+function BurnCompleteDialog({ onLater, onMove }: BurnCompleteDialogProps) {
   return (
     <motion.div
       animate={{ opacity: 1 }}
@@ -210,7 +214,7 @@ function BurnCompleteDialog({ onClose, onMove }: BurnCompleteDialogProps) {
       <motion.section
         animate={{ opacity: 1, y: 0, scale: 1 }}
         aria-labelledby="burn-complete-title"
-        className="mt-[-1px] w-full max-w-[344px] rounded-[15px] border border-purple-200 bg-white px-8 pb-[29px] pt-8 text-center shadow-[0_4px_20px_rgba(254,215,165,0.05)]"
+        className="mt-[-1px] h-[158px] w-full max-w-[344px] rounded-[15px] border border-purple-200 bg-white px-[33px] pb-[30px] pt-8 text-center shadow-[0_4px_20px_rgba(254,215,165,0.05)]"
         initial={{ opacity: 0, y: 10, scale: 0.98 }}
         role="dialog"
         transition={{ duration: 0.25, ease: "easeOut" }}
@@ -222,22 +226,22 @@ function BurnCompleteDialog({ onClose, onMove }: BurnCompleteDialogProps) {
           오늘의 감정을 소각했어요.
         </h2>
         <p className="mt-1 text-xs leading-[15px] text-gray-500">
-          이제 가벼워진 마음으로 개운지침을 만나보세요.
+          개운 처방이 도착했어요. 지금 바로 확인해보세요.
         </p>
-        <div className="mt-[18px] grid grid-cols-2 gap-[17px]">
+        <div className="mt-[15px] flex gap-[5px]">
           <button
-            className="flex h-[38px] items-center justify-center rounded-[7px] border border-gray-200 bg-white text-[15px] font-medium leading-6 text-gray-500"
-            onClick={onClose}
+            className="flex h-[38px] w-[141px] items-center justify-center rounded-[7px] border border-gray-200 bg-white text-[15px] font-medium leading-6 text-gray-500"
+            onClick={onLater}
             type="button"
           >
-            아니요
+            나중에 보기
           </button>
           <button
-            className="flex h-[38px] items-center justify-center rounded-[7px] bg-purple-400 text-[15px] font-medium leading-6 text-white"
+            className="flex h-[38px] w-[129px] items-center justify-center whitespace-nowrap rounded-[7px] bg-purple-400 text-[15px] font-medium leading-6 text-white"
             onClick={onMove}
             type="button"
           >
-            이동할래요
+            개운 지침 보기
           </button>
         </div>
       </motion.section>

@@ -11,7 +11,7 @@ export default function DiaryImageThumbnail({
 }: DiaryImageThumbnailProps) {
   return (
     <div className="relative size-[88px] shrink-0 overflow-hidden rounded-[12px] border border-orange-400">
-      {/* eslint-disable-next-line @next/next/no-img-element -- object URLs from a local file picker aren't compatible with next/image's optimizer */}
+      {/* eslint-disable-next-line @next/next/no-img-element -- previews can be local object URLs or short-lived private URLs */}
       <img alt={alt} className="size-full object-cover object-bottom" src={src} />
       <button
         aria-label="사진 삭제"

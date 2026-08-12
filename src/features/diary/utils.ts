@@ -1,6 +1,11 @@
 import type { DiaryArchiveEntry } from "@/components/common/DiaryArchiveCard";
 import type { DiaryCalendarEntry } from "@/components/common/DiaryCalendar";
-import type { DiaryEntryRecord } from "@/store/useDiaryEntriesStore";
+import { EMOTIONS, type EmotionId } from "@/features/diary/constants";
+import type {
+  DiaryCalendarDay,
+  DiaryEmotionCode,
+  DiarySummary,
+} from "@/features/diary/types";
 
 const dateLabelFormatter = new Intl.DateTimeFormat("ko-KR", {
   day: "numeric",
@@ -34,7 +39,10 @@ export function formatShortKoreanDate(dateString: string): string {
   return `${year}년 ${month}월 ${day}일`;
 }
 
-export function createMonthOptions(startMonth: string, count: number): string[] {
+export function createMonthOptions(
+  startMonth: string,
+  count: number,
+): string[] {
   const [startYear, startMonthNumber] = startMonth.split("-").map(Number);
 
   return Array.from({ length: count }, (_, index) => {
@@ -44,14 +52,18 @@ export function createMonthOptions(startMonth: string, count: number): string[] 
   });
 }
 
-const shortWeekdayFormatter = new Intl.DateTimeFormat("ko-KR", { weekday: "long" });
+const shortWeekdayFormatter = new Intl.DateTimeFormat("ko-KR", {
+  weekday: "long",
+});
 
 export type DiaryShortDateParts = {
   datePart: string;
   weekdayPart: string;
 };
 
-export function getDiaryShortDateParts(dateString: string): DiaryShortDateParts {
+export function getDiaryShortDateParts(
+  dateString: string,
+): DiaryShortDateParts {
   const [year, month, day] = dateString.split("-").map(Number);
   const date = new Date(year, month - 1, day);
 
@@ -70,52 +82,72 @@ export function getCurrentTimeLabel(date: Date = new Date()): string {
   return `${period} ${hours12}:${minutes}`;
 }
 
-export function formatDiaryEntryTimestamp(date: string, savedAt: string): string {
+export function formatDiaryEntryTimestamp(
+  date: string,
+  savedAt: string,
+): string {
   const { datePart, weekdayPart } = getDiaryShortDateParts(date);
 
   return `${datePart} ${weekdayPart} ${getCurrentTimeLabel(new Date(savedAt))}`;
 }
 
 // 최신 작성순(내림차순)으로 정렬한다. 화면 6-1의 보관일기 목록에서 쓴다.
-export function sortEntriesByNewest<T extends { savedAt: string }>(
+export function sortEntriesByNewest<T extends { createdAt: string }>(
   entries: T[],
 ): T[] {
   return [...entries].sort(
-    (a, b) => new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime(),
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   );
 }
 
-// 소각 탭과 일기 탭이 동일한 실제 저장소(useDiaryEntriesStore)를 캘린더용 형태로 변환할 때 공통으로 쓴다.
-// 하루에 여러 편이 있을 수 있으므로, 날짜 한 칸의 아이콘 상태는 그날 전체를 요약해서 판단한다:
-// 하나라도 소각 안 된 게 있으면 작성됨(마스코트), 전부 소각됐으면 소각 완료(자물쇠).
 export function toDiaryCalendarEntries(
-  entries: Record<string, DiaryEntryRecord[]>,
+  days: DiaryCalendarDay[],
 ): DiaryCalendarEntry[] {
-  return Object.entries(entries)
-    .filter(([, dayEntries]) => dayEntries.length > 0)
-    .map(([date, dayEntries]) => {
-      const newest = sortEntriesByNewest(dayEntries)[0];
-
-      return {
-        content: newest.content,
-        createdAt: formatDiaryEntryTimestamp(date, newest.savedAt),
-        date,
-        isBurned: dayEntries.every((entry) => entry.isBurned),
-      };
-    });
+  return days.map((day) => ({
+    content: "",
+    createdAt: "",
+    date: day.date,
+    isBurned: day.status === "BURNED",
+  }));
 }
 
-// 선택된 날짜의 일기들을 보관일기 카드 목록에 넣을 형태로 변환한다(최신 작성순).
 export function toDiaryArchiveEntries(
-  date: string,
-  dayEntries: DiaryEntryRecord[],
+  dayEntries: DiarySummary[],
 ): DiaryArchiveEntry[] {
   return sortEntriesByNewest(dayEntries).map((entry) => ({
     content: entry.content,
-    createdAt: formatDiaryEntryTimestamp(date, entry.savedAt),
-    id: entry.id,
-    isBurned: entry.isBurned,
+    createdAt: formatDiaryEntryTimestamp(entry.recordedDate, entry.createdAt),
+    id: String(entry.diaryId),
+    isBurned: entry.status === "BURNED",
   }));
+}
+
+const EMOTION_CODE_BY_ID: Record<EmotionId, DiaryEmotionCode> = {
+  angry: "ANGRY",
+  anxious: "ANXIOUS",
+  calm: "COMFORTABLE",
+  excited: "EXCITED",
+  happy: "HAPPY",
+  joy: "JOYFUL",
+  lethargic: "LETHARGIC",
+  neutral: "NORMAL",
+  sad: "SAD",
+};
+
+const EMOTION_ID_BY_CODE = Object.fromEntries(
+  Object.entries(EMOTION_CODE_BY_ID).map(([id, code]) => [code, id]),
+) as Record<DiaryEmotionCode, EmotionId>;
+
+export function toDiaryEmotionCode(emotionId: EmotionId): DiaryEmotionCode {
+  return EMOTION_CODE_BY_ID[emotionId];
+}
+
+export function toEmotionId(emotionCode: string): EmotionId {
+  if (emotionCode in EMOTION_ID_BY_CODE) {
+    return EMOTION_ID_BY_CODE[emotionCode as DiaryEmotionCode];
+  }
+
+  return EMOTIONS[0].id;
 }
 
 // 시드(예: 일기 날짜) 기반으로 목록에서 하나를 고른다. 서버/클라이언트가 항상 같은
