@@ -1,12 +1,32 @@
+"use client";
+
 import Link from "next/link";
 import BottomNavigation from "@/components/layout/BottomNavigation";
 import { MAIN_NAVIGATION_ITEMS } from "@/constants/navigation";
 import EmotionSummarySection from "@/features/report/components/EmotionSummarySection";
 import NextWeekSection from "@/features/report/components/NextWeekSection";
 import SavedTalismanSection from "@/features/report/components/SavedTalismanSection";
+import { useWeeklyReport } from "@/features/report/hooks/useWeeklyReport";
+import {
+  formatWeeklyPeriod,
+  getDiaryCount,
+  toEmotionChartItems,
+} from "@/features/report/utils";
 import MemberName from "@/features/user/components/MemberName";
 
 export default function ReportPage() {
+  const {
+    canMoveNext,
+    canMovePrevious,
+    error,
+    isLoading,
+    moveNext,
+    movePrevious,
+    report,
+    selectedPeriod,
+  } = useWeeklyReport();
+  const emotionStats = report?.emotionStats ?? [];
+
   return (
     <main className="h-dvh overflow-hidden bg-gray-100 text-foreground">
       <div className="relative mx-auto h-dvh w-full max-w-[395px] overflow-y-auto bg-background pb-[calc(116px+env(safe-area-inset-bottom))] pt-[28px]">
@@ -29,25 +49,37 @@ export default function ReportPage() {
               <MemberName /> 님
             </h2>
             <div className="mt-2.5 flex gap-[25px] text-lg leading-[22px]">
-              <ReportCount label="일기" value="4" />
-              <ReportCount label="소각" value="2" />
+              <ReportCount
+                label="일기"
+                value={String(getDiaryCount(emotionStats))}
+              />
+              <ReportCount
+                label="소각"
+                value={String(report?.burnCount ?? 0)}
+              />
             </div>
           </section>
 
           <div className="mt-[25px] flex items-center justify-center gap-2.5">
             <button
               aria-label="이전 주"
-              className="text-orange-500"
+              className="text-orange-500 disabled:text-gray-300"
+              disabled={!canMovePrevious}
+              onClick={movePrevious}
               type="button"
             >
               <SmallChevronLeftIcon />
             </button>
             <p className="text-xl font-semibold leading-[23px] text-orange-500">
-              6월 1주차
+              {selectedPeriod
+                ? formatWeeklyPeriod(selectedPeriod)
+                : "리포트 없음"}
             </p>
             <button
               aria-label="다음 주"
-              className="rotate-180 text-orange-500"
+              className="rotate-180 text-orange-500 disabled:text-gray-300"
+              disabled={!canMoveNext}
+              onClick={moveNext}
               type="button"
             >
               <SmallChevronLeftIcon />
@@ -55,9 +87,20 @@ export default function ReportPage() {
           </div>
         </header>
 
-        <EmotionSummarySection />
+        <EmotionSummarySection
+          chartItems={toEmotionChartItems(emotionStats)}
+          isLoading={isLoading}
+          summary={report?.summary.insightSummary ?? null}
+        />
         <SavedTalismanSection />
-        <NextWeekSection />
+        <NextWeekSection
+          advice={report?.nextWeekFlow?.adviceText ?? null}
+          isLoading={isLoading}
+        />
+
+        <p aria-live="polite" className="sr-only">
+          {error}
+        </p>
 
         <BottomNavigation activeValue="report" items={MAIN_NAVIGATION_ITEMS} />
       </div>
