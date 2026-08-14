@@ -1,24 +1,41 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import BottomNavigation from "@/components/layout/BottomNavigation";
 import { MAIN_NAVIGATION_ITEMS } from "@/constants/navigation";
 import TalismanCard from "@/features/burn/components/TalismanCard";
 import UnsavedTalismanDialog from "@/features/burn/components/UnsavedTalismanDialog";
-import { MOCK_TALISMAN } from "@/features/burn/mocks";
+import type { GeneratedTalisman } from "@/features/burn/types";
+import {
+  GENERATED_TALISMAN_STORAGE_KEY,
+  parseGeneratedTalisman,
+} from "@/features/burn/utils";
 import { useTalismanStore } from "@/store/useTalismanStore";
 import type { MouseEvent as ReactMouseEvent } from "react";
 
 export default function TalismanResultPage() {
   const router = useRouter();
   const saveTalisman = useTalismanStore((state) => state.saveTalisman);
+  const serializedTalisman = useSyncExternalStore(
+    subscribeToGeneratedTalisman,
+    getGeneratedTalismanSnapshot,
+    getServerGeneratedTalismanSnapshot,
+  );
+  const talisman = useMemo<GeneratedTalisman | null>(
+    () => parseGeneratedTalisman(serializedTalisman),
+    [serializedTalisman],
+  );
   const [isSaved, setIsSaved] = useState(false);
   const [pendingHref, setPendingHref] = useState<string | null>(null);
 
   const handleSave = () => {
-    saveTalisman(MOCK_TALISMAN);
+    if (!talisman) {
+      return;
+    }
+
+    saveTalisman(talisman);
     setIsSaved(true);
   };
 
@@ -73,14 +90,23 @@ export default function TalismanResultPage() {
           </h1>
         </header>
 
-        <SourceDate occurredAt={MOCK_TALISMAN.source.occurredAt} />
+        <SourceDate occurredAt={talisman?.source.occurredAt ?? null} />
 
         <div className="mt-4">
-          <TalismanCard talisman={MOCK_TALISMAN} />
+          {talisman ? (
+            <TalismanCard talisman={talisman} />
+          ) : (
+            <div className="flex aspect-[345/476] items-center justify-center rounded-[15px] bg-gray-100 px-8 text-center text-gray-500">
+              생성된 부적을 찾지 못했어요.
+              <br />
+              개운지침에서 다시 생성해 주세요.
+            </div>
+          )}
         </div>
 
         <button
-          className="mt-5 flex h-[57px] w-full items-center justify-center rounded-lg bg-orange-500 text-xl font-semibold leading-[23px] text-white active:opacity-90"
+          className="mt-5 flex h-[57px] w-full items-center justify-center rounded-lg bg-orange-500 text-xl font-semibold leading-[23px] text-white active:opacity-90 disabled:opacity-60"
+          disabled={!talisman}
           onClick={handleSave}
           type="button"
         >
@@ -98,6 +124,18 @@ export default function TalismanResultPage() {
       </div>
     </main>
   );
+}
+
+function subscribeToGeneratedTalisman(): () => void {
+  return () => undefined;
+}
+
+function getGeneratedTalismanSnapshot(): string | null {
+  return sessionStorage.getItem(GENERATED_TALISMAN_STORAGE_KEY);
+}
+
+function getServerGeneratedTalismanSnapshot(): null {
+  return null;
 }
 
 type SourceDateProps = {
