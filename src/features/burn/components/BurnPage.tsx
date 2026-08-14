@@ -11,6 +11,7 @@ import BottomNavigation from "@/components/layout/BottomNavigation";
 import { MAIN_NAVIGATION_ITEMS } from "@/constants/navigation";
 import { createBurning } from "@/features/burn/api/burnings";
 import BurnedDiaryDialog from "@/features/burn/components/BurnedDiaryDialog";
+import BurnNavigationTabs from "@/features/burn/components/BurnNavigationTabs";
 import type { CreateBurningRequest } from "@/features/burn/types";
 import { useDiariesByDate } from "@/features/diary/hooks/useDiariesByDate";
 import { useDiaryCalendar } from "@/features/diary/hooks/useDiaryCalendar";
@@ -33,9 +34,13 @@ type SelectedImage = {
 const TODAY = getTodayDateString();
 const CALENDAR_MONTHS = createMonthOptions("2025-01", 36);
 
-export default function BurnPage() {
+type BurnPageProps = {
+  initialTab?: BurnTab;
+};
+
+export default function BurnPage({ initialTab = "emotion" }: BurnPageProps) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<BurnTab>("emotion");
+  const [activeTab, setActiveTab] = useState<BurnTab>(initialTab);
   const [burnText, setBurnText] = useState("");
   const [isInputError, setIsInputError] = useState(false);
   const [selectedImage, setSelectedImage] = useState<SelectedImage | null>(
@@ -190,11 +195,15 @@ export default function BurnPage() {
           소각
         </h1>
 
-        <div className="mt-[18px] flex items-center justify-between">
-          <BurnTabs activeTab={activeTab} onChange={setActiveTab} />
+        <div className="mt-[18px] flex items-center gap-2.5">
+          <BurnNavigationTabs
+            activeTab={activeTab === "emotion" ? "direct" : "diary"}
+            onDiaryClick={() => setActiveTab("diary")}
+            onDirectClick={() => setActiveTab("emotion")}
+          />
           <button
             aria-label="사진 촬영 또는 선택"
-            className="flex size-[37px] items-center justify-center rounded-full bg-orange-400 text-white transition-opacity active:opacity-80"
+            className="ml-auto flex size-[37px] shrink-0 items-center justify-center rounded-full bg-orange-400 text-white transition-opacity active:opacity-80"
             onClick={handleCameraClick}
             type="button"
           >
@@ -272,52 +281,6 @@ export default function BurnPage() {
         ) : null}
       </div>
     </main>
-  );
-}
-
-type BurnTabsProps = {
-  activeTab: BurnTab;
-  onChange: (tab: BurnTab) => void;
-};
-
-function BurnTabs({ activeTab, onChange }: BurnTabsProps) {
-  return (
-    <div className="flex items-center gap-2.5" role="tablist">
-      <TabButton
-        isActive={activeTab === "emotion"}
-        label="감정 입력"
-        onClick={() => onChange("emotion")}
-      />
-      <TabButton
-        isActive={activeTab === "diary"}
-        label="일기 선택"
-        onClick={() => onChange("diary")}
-      />
-    </div>
-  );
-}
-
-type TabButtonProps = {
-  isActive: boolean;
-  label: string;
-  onClick: () => void;
-};
-
-function TabButton({ isActive, label, onClick }: TabButtonProps) {
-  return (
-    <button
-      aria-selected={isActive}
-      className={`rounded-full px-[15px] py-2 text-base leading-normal transition-colors ${
-        isActive
-          ? "bg-orange-500 text-white"
-          : "border border-gray-200 bg-gray-100 text-foreground"
-      }`}
-      onClick={onClick}
-      role="tab"
-      type="button"
-    >
-      {label}
-    </button>
   );
 }
 

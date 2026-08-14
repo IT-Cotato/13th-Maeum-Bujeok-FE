@@ -11,6 +11,7 @@ import type { GeneratedTalisman } from "@/features/burn/types";
 import {
   GENERATED_TALISMAN_STORAGE_KEY,
   parseGeneratedTalisman,
+  TALISMAN_RETURN_PATH_STORAGE_KEY,
 } from "@/features/burn/utils";
 import { useTalismanStore } from "@/store/useTalismanStore";
 import type { MouseEvent as ReactMouseEvent } from "react";
@@ -26,6 +27,11 @@ export default function TalismanResultPage() {
   const talisman = useMemo<GeneratedTalisman | null>(
     () => parseGeneratedTalisman(serializedTalisman),
     [serializedTalisman],
+  );
+  const returnHref = useSyncExternalStore(
+    subscribeToGeneratedTalisman,
+    getTalismanReturnPathSnapshot,
+    getServerGeneratedTalismanSnapshot,
   );
   const [isSaved, setIsSaved] = useState(false);
   const [pendingHref, setPendingHref] = useState<string | null>(null);
@@ -79,9 +85,13 @@ export default function TalismanResultPage() {
       >
         <header className="grid grid-cols-[28px_1fr_28px] items-center">
           <Link
-            aria-label="개운지침 화면으로 돌아가기"
+            aria-label={
+              returnHref
+                ? "소각 기록 상세로 돌아가기"
+                : "개운지침 화면으로 돌아가기"
+            }
             className="flex size-7 items-center justify-center"
-            href="/burn/fortune"
+            href={returnHref ?? "/burn/fortune"}
           >
             <BackIcon />
           </Link>
@@ -132,6 +142,12 @@ function subscribeToGeneratedTalisman(): () => void {
 
 function getGeneratedTalismanSnapshot(): string | null {
   return sessionStorage.getItem(GENERATED_TALISMAN_STORAGE_KEY);
+}
+
+function getTalismanReturnPathSnapshot(): string | null {
+  const value = sessionStorage.getItem(TALISMAN_RETURN_PATH_STORAGE_KEY);
+
+  return value?.startsWith("/burn/history/") ? value : null;
 }
 
 function getServerGeneratedTalismanSnapshot(): null {
