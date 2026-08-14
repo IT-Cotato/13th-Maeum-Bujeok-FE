@@ -1,3 +1,5 @@
+import TalismanCard from "@/features/burn/components/TalismanCard";
+import { useServerTalisman } from "@/features/report/hooks/useServerTalisman";
 import type { TalismanItem } from "@/features/report/types";
 
 type ServerTalismanCardProps = {
@@ -9,11 +11,19 @@ export default function ServerTalismanCard({
   talisman,
   variant = "full",
 }: ServerTalismanCardProps) {
+  const { error, isLoading, talisman: generatedTalisman } = useServerTalisman(
+    talisman.burnRitualId,
+    talisman.talismanId,
+  );
   const radiusClass = {
     full: "rounded-[15px]",
     list: "rounded-[4.331px]",
     report: "rounded-[4.297px]",
   }[variant];
+
+  if (generatedTalisman) {
+    return <TalismanCard talisman={generatedTalisman} variant={variant} />;
+  }
 
   return (
     <article
@@ -29,7 +39,7 @@ export default function ServerTalismanCard({
         />
       ) : (
         <div className="flex size-full items-center justify-center px-3 text-center text-xs text-orange-500">
-          부적 이미지를 준비하고 있어요.
+          {isLoading ? "부적을 불러오고 있어요." : error}
         </div>
       )}
     </article>
