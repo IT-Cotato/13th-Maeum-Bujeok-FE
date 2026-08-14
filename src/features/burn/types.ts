@@ -59,10 +59,28 @@ export type BurningDetailResponse = {
     "COMPLETED" | "FAILED" | "FALLBACK_COMPLETED" | "PENDING" | "PROCESSING";
   burnedAt: string;
   burningId: number;
+  comment: string | null;
+  guidance: string | null;
   hasTalisman: boolean;
   sourceType: "DIARY" | "DIRECT";
+  sourceContent: string | null;
   talismanText: string | null;
   talismanType: number | null;
+  title: string | null;
+};
+
+export type BurningListItem = {
+  analysisStatus: BurningDetailResponse["analysisStatus"];
+  burnedAt: string;
+  burningId: number;
+  hasTalisman: boolean;
+  sourceType: "DIARY" | "DIRECT";
+};
+
+export type BurningListResponse = {
+  hasNext: boolean;
+  items: BurningListItem[];
+  nextCursor: number | null;
 };
 
 export type TalismanCreationResponse = {

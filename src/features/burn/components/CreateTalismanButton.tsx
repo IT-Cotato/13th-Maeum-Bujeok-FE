@@ -10,16 +10,25 @@ import {
 import {
   GENERATED_TALISMAN_STORAGE_KEY,
   getPendingBurningId,
+  TALISMAN_RETURN_PATH_STORAGE_KEY,
   toGeneratedTalisman,
 } from "@/features/burn/utils";
 
-export default function CreateTalismanButton() {
+type CreateTalismanButtonProps = {
+  burningId?: number;
+  returnHref?: string;
+};
+
+export default function CreateTalismanButton({
+  burningId: providedBurningId,
+  returnHref,
+}: CreateTalismanButtonProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
 
   const handleCreate = async () => {
-    const burningId = getPendingBurningId();
+    const burningId = providedBurningId ?? getPendingBurningId();
 
     if (!burningId) {
       setError("소각 정보를 찾지 못했어요. 다시 소각해 주세요.");
@@ -55,6 +64,11 @@ export default function CreateTalismanButton() {
         GENERATED_TALISMAN_STORAGE_KEY,
         JSON.stringify(talisman),
       );
+      if (returnHref) {
+        sessionStorage.setItem(TALISMAN_RETURN_PATH_STORAGE_KEY, returnHref);
+      } else {
+        sessionStorage.removeItem(TALISMAN_RETURN_PATH_STORAGE_KEY);
+      }
       router.push("/burn/talisman");
     } catch (requestError) {
       setError(
