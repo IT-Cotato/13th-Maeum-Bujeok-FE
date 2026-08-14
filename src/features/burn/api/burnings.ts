@@ -5,6 +5,7 @@ import type {
   CreateBurningRequest,
   CreateBurningResponse,
   BurningDetailResponse,
+  BurningListResponse,
   TalismanCreationResponse,
 } from "@/features/burn/types";
 import { apiClient } from "@/services/apiClient";
@@ -61,6 +62,40 @@ export async function getBurningDetail(
     `/api/burnings/${burningId}`,
     "소각 정보를 불러오지 못했어요.",
   );
+}
+
+export async function getBurnings(
+  options: { cursor?: number; size?: number } = {},
+): Promise<BurningListResponse> {
+  try {
+    const response = await apiClient.get<ApiResponse<BurningListResponse>>(
+      "/api/burnings",
+      { params: options },
+    );
+    const payload = response.data;
+
+    if (!payload.success || !payload.data) {
+      throw new BurningApiError(
+        payload.message || "소각 기록을 불러오지 못했어요.",
+        payload.code,
+      );
+    }
+
+    return payload.data;
+  } catch (error) {
+    if (error instanceof BurningApiError) {
+      throw error;
+    }
+
+    if (isAxiosError<ApiResponse>(error)) {
+      throw new BurningApiError(
+        error.response?.data?.message || "소각 기록을 불러오지 못했어요.",
+        error.response?.data?.code,
+      );
+    }
+
+    throw new BurningApiError("소각 기록을 불러오지 못했어요.");
+  }
 }
 
 export async function createTalisman(
