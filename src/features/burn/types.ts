@@ -8,6 +8,10 @@ export const TALISMAN_TEMPLATE_KEYS = [
   "talisman-07",
   "talisman-08",
   "talisman-09",
+  "talisman-10",
+  "talisman-11",
+  "talisman-12",
+  "talisman-13",
 ] as const;
 
 export type TalismanTemplateKey = (typeof TALISMAN_TEMPLATE_KEYS)[number];
@@ -48,4 +52,22 @@ export type CreateBurningResponse = {
   burnedAt: string;
   burningId: number;
   sourceType: "DIARY" | "DIRECT";
+};
+
+export type BurningDetailResponse = {
+  analysisStatus:
+    "COMPLETED" | "FAILED" | "FALLBACK_COMPLETED" | "PENDING" | "PROCESSING";
+  burnedAt: string;
+  burningId: number;
+  hasTalisman: boolean;
+  sourceType: "DIARY" | "DIRECT";
+  talismanText: string | null;
+  talismanType: number | null;
+};
+
+export type TalismanCreationResponse = {
+  hasTalisman: boolean;
+  talisman: {
+    talismanId: number;
+  } | null;
 };
