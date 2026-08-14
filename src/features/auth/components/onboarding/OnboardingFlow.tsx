@@ -12,6 +12,7 @@ import PasswordResetFlow from "@/features/auth/components/password-reset/Passwor
 import ServiceIntroScreen from "@/features/auth/components/onboarding/ServiceIntroScreen";
 import WelcomeScreen from "@/features/auth/components/onboarding/WelcomeScreen";
 import SignupFlow from "@/features/auth/components/signup/SignupFlow";
+import { redirectToGoogleLogin } from "@/features/auth/api/auth";
 import { SERVICE_INTRO_STEPS } from "@/features/auth/constants";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useUserStore } from "@/store/useUserStore";
@@ -56,9 +57,7 @@ export default function OnboardingFlow() {
   const currentView =
     view === "welcome" &&
     (profileStatus === "onboarding-required" ||
-      (profileStatus === "success" &&
-        profile &&
-        !profile.onboardingCompleted))
+      (profileStatus === "success" && profile && !profile.onboardingCompleted))
       ? "member-onboarding"
       : view;
 
@@ -83,6 +82,7 @@ export default function OnboardingFlow() {
       <div className="relative mx-auto h-dvh min-h-[700px] w-full max-w-[393px] overflow-hidden bg-navy-900">
         {currentView === "welcome" && (
           <WelcomeScreen
+            onGoogleLogin={redirectToGoogleLogin}
             onLogin={() => setView("login")}
             onStart={() => setView("intro")}
           />

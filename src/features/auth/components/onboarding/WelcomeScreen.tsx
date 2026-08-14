@@ -3,17 +3,19 @@ import Image from "next/image";
 import AuthPrimaryButton from "@/features/auth/components/common/AuthPrimaryButton";
 
 type WelcomeScreenProps = {
+  onGoogleLogin: () => void;
   onLogin: () => void;
   onStart: () => void;
 };
 
 export default function WelcomeScreen({
+  onGoogleLogin,
   onLogin,
   onStart,
 }: WelcomeScreenProps) {
   return (
     <section aria-labelledby="welcome-title" className="absolute inset-0">
-      <div className="absolute left-1/2 top-[217px] flex w-[183px] -translate-x-1/2 flex-col items-center">
+      <div className="absolute left-1/2 top-[calc(50%-209px)] flex w-[183px] -translate-x-1/2 flex-col items-center">
         <div className="relative h-[150px] w-[69px] shrink-0">
           <Image
             alt=""
@@ -37,10 +39,21 @@ export default function WelcomeScreen({
         </p>
       </div>
 
-      <div className="absolute inset-x-6 bottom-[112px]">
+      <div className="absolute inset-x-6 bottom-[181px]">
         <AuthPrimaryButton onClick={onStart} type="button">
-          시작하기
+          회원가입
         </AuthPrimaryButton>
+      </div>
+
+      <div className="absolute inset-x-6 bottom-[112px]">
+        <button
+          className="relative h-[57px] w-full rounded-lg bg-gray-100 text-lg font-semibold leading-[23px] text-navy-900 active:opacity-90"
+          onClick={onGoogleLogin}
+          type="button"
+        >
+          <GoogleLogo />
+          Google로 시작하기
+        </button>
       </div>
 
       <div className="absolute inset-x-0 bottom-[76px] flex items-center justify-center gap-[7px] text-[13px] leading-[23px]">
@@ -54,5 +67,33 @@ export default function WelcomeScreen({
         </button>
       </div>
     </section>
+  );
+}
+
+function GoogleLogo() {
+  const assets = [
+    "/figma/auth/google-logo-red.svg",
+    "/figma/auth/google-logo-blue.svg",
+    "/figma/auth/google-logo-yellow.svg",
+    "/figma/auth/google-logo-green.svg",
+  ];
+
+  return (
+    <span
+      aria-hidden="true"
+      className="absolute left-[21px] top-[17px] size-6 overflow-hidden"
+    >
+      {assets.map((src) => (
+        <Image
+          alt=""
+          className="absolute inset-0 size-full"
+          height={24}
+          key={src}
+          src={src}
+          unoptimized
+          width={24}
+        />
+      ))}
+    </span>
   );
 }
