@@ -6,12 +6,16 @@ import Link from "next/link";
 import NotificationPageShell from "@/features/user/components/NotificationPageShell";
 import NotificationToggle from "@/features/user/components/NotificationToggle";
 import { DEFAULT_NOTIFICATION_SETTINGS } from "@/features/user/constants";
-import { updateNotificationSettings } from "@/features/user/api/notifications";
+import {
+  getNotificationSettings,
+  updateNotificationSettings,
+} from "@/features/user/api/notifications";
 import { useNotificationToggles } from "@/features/user/hooks/useNotificationToggles";
 
 export default function NotificationSettingsPage() {
-  const { isPending, toggle, values } = useNotificationToggles(
+  const { error, isPending, toggle, values } = useNotificationToggles(
     DEFAULT_NOTIFICATION_SETTINGS,
+    getNotificationSettings,
     updateNotificationSettings,
   );
 
@@ -58,6 +62,10 @@ export default function NotificationSettingsPage() {
           width={40}
         />
       </Link>
+
+      <p aria-live="polite" className="sr-only">
+        {error}
+      </p>
     </NotificationPageShell>
   );
 }
