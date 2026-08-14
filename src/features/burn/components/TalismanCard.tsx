@@ -15,6 +15,10 @@ const TEMPLATE_ASSETS: Record<TalismanTemplateKey, string> = {
   "talisman-07": "/figma/talisman/templates/talisman-07.png",
   "talisman-08": "/figma/talisman/templates/talisman-08.png",
   "talisman-09": "/figma/talisman/templates/talisman-09.png",
+  "talisman-10": "/figma/talisman/templates/talisman-10.png",
+  "talisman-11": "/figma/talisman/templates/talisman-11.png",
+  "talisman-12": "/figma/talisman/templates/talisman-12.png",
+  "talisman-13": "/figma/talisman/templates/talisman-13.png",
 };
 
 type TalismanCardProps = {
@@ -27,9 +31,8 @@ export default function TalismanCard({
   variant = "full",
 }: TalismanCardProps) {
   const characters = splitTalismanPhrase(talisman.phrase) ?? ["", "", "", ""];
-  const isSpecialTemplate = talisman.templateKey === "talisman-07";
   const templateAsset =
-    TEMPLATE_ASSETS[talisman.templateKey] ?? TEMPLATE_ASSETS["talisman-09"];
+    TEMPLATE_ASSETS[talisman.templateKey] ?? TEMPLATE_ASSETS["talisman-13"];
   const radiusClass = {
     full: "rounded-[15px]",
     list: "rounded-[4.331px]",
@@ -41,31 +44,19 @@ export default function TalismanCard({
       aria-label={`${talisman.phrase} 마음부적`}
       className={`relative aspect-[345/476] w-full overflow-hidden bg-[#ffcd4a] [container-type:inline-size] ${radiusClass}`}
     >
-      {isSpecialTemplate ? (
-        <Image
-          alt=""
-          className="absolute left-[-5.8%] top-[-3.36%] h-[108.4%] w-[111.6%] max-w-none"
-          height={516}
-          priority
-          src={templateAsset}
-          unoptimized
-          width={385}
-        />
-      ) : (
-        <Image
-          alt=""
-          className="object-fill"
-          fill
-          priority
-          src={templateAsset}
-          unoptimized
-        />
-      )}
+      <Image
+        alt=""
+        className="object-fill"
+        fill
+        priority
+        src={templateAsset}
+        unoptimized
+      />
 
-      <div className="absolute left-[13.33%] top-[14.29%] grid h-[14.29%] w-[73.33%] grid-cols-4">
+      <div className="absolute left-[13.33%] top-[13.03%] grid h-[14.29%] w-[73.33%] grid-cols-4">
         {characters.map((character, index) => (
           <span
-            className="font-talisman flex items-center justify-center pt-[1cqw] text-[11.59cqw] leading-none text-[#fe7023]"
+            className="font-talisman flex items-center justify-center pt-[1cqw] text-[11.59cqw] font-normal leading-none text-[#fe7023]"
             key={`${character}-${index}`}
           >
             {character}
@@ -74,7 +65,7 @@ export default function TalismanCard({
       </div>
 
       <time
-        className="absolute left-1/2 top-[31.51%] -translate-x-1/2 text-[5.8cqw] font-semibold leading-normal text-[#fe7023]"
+        className="absolute left-1/2 top-[30.25%] -translate-x-1/2 text-[5.8cqw] font-semibold leading-normal text-[#fe7023]"
         dateTime={talisman.generatedAt}
       >
         {formatDate(talisman.generatedAt)}
