@@ -3,7 +3,10 @@
 import NotificationPageShell from "@/features/user/components/NotificationPageShell";
 import NotificationToggle from "@/features/user/components/NotificationToggle";
 import { DEFAULT_NOTIFICATION_DAYS } from "@/features/user/constants";
-import { updateNotificationDays } from "@/features/user/api/notifications";
+import {
+  getNotificationDays,
+  updateNotificationDays,
+} from "@/features/user/api/notifications";
 import { useNotificationToggles } from "@/features/user/hooks/useNotificationToggles";
 import type { NotificationDays } from "@/features/user/types";
 
@@ -18,8 +21,9 @@ const DAY_ITEMS: { key: keyof NotificationDays; label: string }[] = [
 ];
 
 export default function NotificationDaysPage() {
-  const { isPending, toggle, values } = useNotificationToggles(
+  const { error, isPending, toggle, values } = useNotificationToggles(
     DEFAULT_NOTIFICATION_DAYS,
+    getNotificationDays,
     updateNotificationDays,
   );
 
@@ -44,6 +48,10 @@ export default function NotificationDaysPage() {
           </div>
         ))}
       </div>
+
+      <p aria-live="polite" className="sr-only">
+        {error}
+      </p>
     </NotificationPageShell>
   );
 }
