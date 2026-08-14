@@ -11,7 +11,7 @@ import type {
 import { isAuthTokens } from "@/features/auth/utils";
 import { useAuthStore } from "@/store/useAuthStore";
 
-const API_BASE_URL =
+export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://maumbujeok.p-e.kr";
 
 const axiosConfig = {

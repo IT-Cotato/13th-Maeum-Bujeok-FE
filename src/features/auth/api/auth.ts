@@ -11,7 +11,7 @@ import type {
   SmsVerifyRequest,
 } from "@/features/auth/types";
 import { isAuthTokens } from "@/features/auth/utils";
-import { apiClient, publicApiClient } from "@/services/apiClient";
+import { API_BASE_URL, apiClient, publicApiClient } from "@/services/apiClient";
 
 export class AuthApiError extends Error {
   code: string;
@@ -21,6 +21,11 @@ export class AuthApiError extends Error {
     this.name = "AuthApiError";
     this.code = code;
   }
+}
+
+export function redirectToGoogleLogin(): void {
+  const apiBaseUrl = API_BASE_URL.replace(/\/$/, "");
+  window.location.assign(`${apiBaseUrl}/api/auth/google`);
 }
 
 export async function sendSignupSms(phoneNumber: string): Promise<void> {
