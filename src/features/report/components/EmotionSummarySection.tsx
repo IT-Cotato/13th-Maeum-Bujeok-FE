@@ -40,15 +40,17 @@ function EmotionDonutChart({ items }: { items: EmotionChartItem[] }) {
       style={{ background }}
     >
       <div className="absolute left-1/2 top-1/2 size-[42px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-orange-100" />
-      {items.map((item, index) => (
-        <EmotionLabel
-          className={LABEL_POSITIONS[index]}
-          key={item.emotion}
-          label={item.emotion}
-          value={`${item.percentage}%`}
-          valueClassName={index === 0 ? "text-sm" : undefined}
-        />
-      ))}
+      {items.map((item, index) =>
+        item.percentage > 0 ? (
+          <EmotionLabel
+            className={LABEL_POSITIONS[index]}
+            key={item.emotion}
+            label={item.emotion}
+            value={`${item.percentage}%`}
+            valueClassName={index === 0 ? "text-sm" : undefined}
+          />
+        ) : null,
+      )}
     </div>
   );
 }
