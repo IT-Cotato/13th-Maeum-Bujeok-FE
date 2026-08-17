@@ -1,12 +1,15 @@
+import type { CSSProperties } from "react";
+
 import type { EmotionChartItem } from "@/features/report/utils";
 import { splitReportCopy } from "@/features/report/utils";
 
 const CHART_COLORS = ["#ff9d58", "#fed7a5", "#feecd2", "#f3f3f3"];
-const LABEL_POSITIONS = [
-  "left-[20px] top-[63px] text-white",
-  "right-[9px] top-[51px] text-[7px] text-foreground",
-  "right-[42px] top-[17px] text-[5px] text-gray-500",
-  "left-[61px] top-[-9px] text-[4px] text-gray-500",
+const LABEL_RADIUS = 45;
+const LABEL_STYLES = [
+  "text-white",
+  "text-[7px] text-foreground",
+  "text-[5px] text-gray-500",
+  "text-[4px] text-gray-500",
 ];
 
 type EmotionSummarySectionProps = {
@@ -33,6 +36,7 @@ export default function EmotionSummarySection({
 
 function EmotionDonutChart({ items }: { items: EmotionChartItem[] }) {
   const background = createConicGradient(items);
+  const labelPositions = createLabelPositions(items);
 
   return (
     <div
@@ -43,9 +47,10 @@ function EmotionDonutChart({ items }: { items: EmotionChartItem[] }) {
       {items.map((item, index) =>
         item.percentage > 0 ? (
           <EmotionLabel
-            className={LABEL_POSITIONS[index]}
+            className={LABEL_STYLES[index]}
             key={item.emotion}
             label={item.emotion}
+            style={labelPositions[index]}
             value={`${item.percentage}%`}
             valueClassName={index === 0 ? "text-sm" : undefined}
           />
@@ -58,6 +63,7 @@ function EmotionDonutChart({ items }: { items: EmotionChartItem[] }) {
 type EmotionLabelProps = {
   className: string;
   label: string;
+  style: CSSProperties;
   value: string;
   valueClassName?: string;
 };
@@ -65,18 +71,35 @@ type EmotionLabelProps = {
 function EmotionLabel({
   className,
   label,
+  style,
   value,
   valueClassName = "text-[9px]",
 }: EmotionLabelProps) {
   return (
     <p
-      className={`absolute text-center font-medium leading-normal ${className}`}
+      className={`absolute -translate-x-1/2 -translate-y-1/2 text-center font-medium leading-normal ${className}`}
+      style={style}
     >
       {label}
       <br />
       <span className={valueClassName}>{value}</span>
     </p>
   );
+}
+
+function createLabelPositions(items: EmotionChartItem[]): CSSProperties[] {
+  let start = 0;
+
+  return items.map((item) => {
+    const middle = start + item.percentage / 2;
+    const angle = (middle / 100) * Math.PI * 2 - Math.PI / 2;
+    start += item.percentage;
+
+    return {
+      left: `calc(50% + ${Math.cos(angle) * LABEL_RADIUS}px)`,
+      top: `calc(50% + ${Math.sin(angle) * LABEL_RADIUS}px)`,
+    };
+  });
 }
 
 function SummaryCard({
