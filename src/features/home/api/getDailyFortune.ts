@@ -1,8 +1,8 @@
 import { isAxiosError } from "axios";
 
-import type { ApiResponse } from "@/features/auth/types";
 import type { HomeSummary } from "@/features/home/types";
 import { apiClient } from "@/services/apiClient";
+import type { ApiResponse } from "@/types/api";
 
 const HOME_SUMMARY_PATH = "/api/home/summary";
 

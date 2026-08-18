@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import type { MyMenuItem } from "@/features/user/constants";
+import type { MyMenuItem } from "@/features/user/types";
 
 type MyMenuSectionProps = {
   className?: string;

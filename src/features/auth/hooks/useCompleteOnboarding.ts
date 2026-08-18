@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import { completeOnboarding } from "@/features/auth/api/auth";
 import type { SajuProfileDraft, SignUpTerms } from "@/features/auth/types";
-import { createSajuAnalysis } from "@/features/user/api/saju";
+import { createSajuAnalysis } from "@/features/user/api/sajuAnalyses";
 import { getMyProfile } from "@/features/user/api/profile";
 import { useUserStore } from "@/store/useUserStore";
 

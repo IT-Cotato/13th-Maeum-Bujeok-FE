@@ -3,13 +3,10 @@
 import axios, { type AxiosError } from "axios";
 import createAuthRefresh from "axios-auth-refresh";
 
-import type {
-  ApiResponse,
-  AuthTokens,
-  TokenReissueRequest,
-} from "@/features/auth/types";
+import type { AuthTokens, TokenReissueRequest } from "@/features/auth/types";
 import { isAuthTokens } from "@/features/auth/utils";
 import { useAuthStore } from "@/store/useAuthStore";
+import type { ApiResponse } from "@/types/api";
 
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://maumbujeok.p-e.kr";

@@ -1,8 +1,8 @@
 "use client";
 
-import NotificationPageShell from "@/features/user/components/NotificationPageShell";
-import NotificationToggle from "@/features/user/components/NotificationToggle";
-import { DEFAULT_NOTIFICATION_DAYS } from "@/features/user/constants";
+import NotificationPageShell from "@/features/user/components/notification/NotificationPageShell";
+import NotificationToggle from "@/features/user/components/notification/NotificationToggle";
+import { DEFAULT_NOTIFICATION_DAYS } from "@/features/user/constants/notifications";
 import {
   getNotificationDays,
   updateNotificationDays,

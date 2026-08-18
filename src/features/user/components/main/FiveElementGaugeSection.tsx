@@ -1,7 +1,7 @@
 import {
   EMPTY_FIVE_ELEMENT_GAUGES,
   FIVE_ELEMENT_META,
-} from "@/features/user/constants";
+} from "@/features/user/constants/saju";
 import type { FiveElementGaugeValue } from "@/features/user/types";
 
 type FiveElementGaugeSectionProps = {

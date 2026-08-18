@@ -1,10 +1,3 @@
-export type ApiResponse<T = unknown> = {
-  code: string;
-  data?: T | null;
-  message: string;
-  success: boolean;
-};
-
 export type SmsSendRequest = {
   phoneNumber: string;
   purpose: "PASSWORD_RESET" | "SIGNUP";
@@ -70,12 +63,4 @@ export type MemberOnboardingRequest = {
   privacyAgreed: boolean;
   sensitiveDataAgreed: boolean;
   termsAgreed: boolean;
-};
-
-export type SajuAnalysisStatus =
-  "COMPLETED" | "FAILED" | "PENDING" | "PROCESSING";
-
-export type CreateSajuAnalysisResponse = {
-  analysisId: number;
-  status: SajuAnalysisStatus;
 };

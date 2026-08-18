@@ -1,11 +1,11 @@
 import { isAxiosError } from "axios";
 
-import type { ApiResponse } from "@/features/auth/types";
 import type {
   NotificationDays,
   NotificationSettings,
 } from "@/features/user/types";
 import { apiClient } from "@/services/apiClient";
+import type { ApiResponse } from "@/types/api";
 
 const NOTIFICATION_SETTINGS_PATH = "/api/mypage/notifications";
 const NOTIFICATION_DAYS_PATH = "/api/mypage/notifications/days";

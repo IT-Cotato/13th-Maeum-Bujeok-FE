@@ -1,8 +1,8 @@
 import { isAxiosError } from "axios";
 
-import type { ApiResponse } from "@/features/auth/types";
 import type { PresignedUpload } from "@/features/diary/types";
 import { apiClient } from "@/services/apiClient";
+import type { ApiResponse } from "@/types/api";
 
 export const MAX_DIARY_IMAGE_BYTES = 10 * 1024 * 1024;
 export const SUPPORTED_DIARY_IMAGE_TYPES = [

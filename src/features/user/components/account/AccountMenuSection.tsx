@@ -1,9 +1,10 @@
 "use client";
 
-import AccountActionDialog from "@/features/user/components/AccountActionDialog";
-import MyMenuSection from "@/features/user/components/MyMenuSection";
-import { ACCOUNT_MENU_ITEMS, type MyMenuItem } from "@/features/user/constants";
+import AccountActionDialog from "@/features/user/components/account/AccountActionDialog";
+import MyMenuSection from "@/features/user/components/main/MyMenuSection";
+import { ACCOUNT_MENU_ITEMS } from "@/features/user/constants/menu";
 import { useAccountActions } from "@/features/user/hooks/useAccountActions";
+import type { MyMenuItem } from "@/features/user/types";
 
 export default function AccountMenuSection() {
   const {

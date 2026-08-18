@@ -3,9 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import NotificationPageShell from "@/features/user/components/NotificationPageShell";
-import NotificationToggle from "@/features/user/components/NotificationToggle";
-import { DEFAULT_NOTIFICATION_SETTINGS } from "@/features/user/constants";
+import NotificationPageShell from "@/features/user/components/notification/NotificationPageShell";
+import NotificationToggle from "@/features/user/components/notification/NotificationToggle";
+import { DEFAULT_NOTIFICATION_SETTINGS } from "@/features/user/constants/notifications";
 import {
   getNotificationSettings,
   updateNotificationSettings,

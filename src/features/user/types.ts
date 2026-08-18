@@ -6,8 +6,22 @@ export type FiveElementGaugeValue = {
   fillPercentage?: number;
 };
 
+export type MyMenuItem = {
+  action?: "logout" | "withdraw";
+  href?: string;
+  iconHasBackground: boolean;
+  iconSize: number;
+  iconSrc: string;
+  label: string;
+};
+
 export type SajuAnalysisStatus =
   "COMPLETED" | "FAILED" | "PENDING" | "PROCESSING";
+
+export type CreateSajuAnalysisResponse = {
+  analysisId: number;
+  status: SajuAnalysisStatus;
+};
 
 export type FiveElementsBalance = Record<FiveElement, number>;
 
@@ -52,4 +66,17 @@ export type MemberProfile = {
   provider: AuthProvider;
   sensitiveDataAgreed: boolean;
   termsAgreed: boolean;
+};
+
+export type MemberProfileUpdateRequest = {
+  birthDate: string;
+  birthTime: string | null;
+  gender: Exclude<MemberProfile["gender"], null>;
+  name: string;
+  phoneNumber: string;
+};
+
+export type MemberProfileUpdateResponse = {
+  profile: MemberProfile;
+  reauthenticationRequired: boolean;
 };
