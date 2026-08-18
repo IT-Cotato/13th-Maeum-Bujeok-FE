@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 
 import FeedbackScreen, {
@@ -13,11 +13,15 @@ import ServiceIntroScreen from "@/features/auth/components/onboarding/ServiceInt
 import WelcomeScreen from "@/features/auth/components/onboarding/WelcomeScreen";
 import SignupFlow from "@/features/auth/components/signup/SignupFlow";
 import { redirectToGoogleLogin } from "@/features/auth/api/auth";
-import { SERVICE_INTRO_STEPS } from "@/features/auth/constants";
+import {
+  SERVICE_INTRO_COMPLETED_STORAGE_KEY,
+  SERVICE_INTRO_STEPS,
+} from "@/features/auth/constants";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useUserStore } from "@/store/useUserStore";
 
 type OnboardingView =
+  | "initializing"
   | "intro"
   | "login"
   | "member-onboarding"
@@ -25,19 +29,36 @@ type OnboardingView =
   | "signup"
   | "welcome";
 
+type SignupReturnView = "login" | "welcome";
+
 export default function OnboardingFlow() {
   const router = useRouter();
   const accessToken = useAuthStore((state) => state.accessToken);
   const profile = useUserStore((state) => state.profile);
   const profileStatus = useUserStore((state) => state.profileStatus);
-  const [view, setView] = useState<OnboardingView>("welcome");
+  const introCompletion = useSyncExternalStore(
+    subscribeToServiceIntroStorage,
+    getServiceIntroCompletion,
+    getServerServiceIntroCompletion,
+  );
+  const [selectedView, setView] = useState<OnboardingView | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
+  const [signupReturnView, setSignupReturnView] =
+    useState<SignupReturnView>("welcome");
+  const view: OnboardingView =
+    selectedView ??
+    (introCompletion === null
+      ? "initializing"
+      : introCompletion
+        ? "welcome"
+        : "intro");
 
   const handleNext = () => {
     const isLastStep = currentStep === SERVICE_INTRO_STEPS.length - 1;
 
     if (isLastStep) {
-      setView("login");
+      markServiceIntroCompleted();
+      setView("welcome");
       return;
     }
 
@@ -54,6 +75,11 @@ export default function OnboardingFlow() {
     }
   }, [profile, profileStatus, router, view]);
 
+  const openSignup = (returnView: SignupReturnView): void => {
+    setSignupReturnView(returnView);
+    setView("signup");
+  };
+
   const currentView =
     view === "welcome" &&
     (profileStatus === "onboarding-required" ||
@@ -62,10 +88,11 @@ export default function OnboardingFlow() {
       : view;
 
   if (
-    accessToken &&
-    view === "welcome" &&
-    profileStatus !== "success" &&
-    profileStatus !== "onboarding-required"
+    view === "initializing" ||
+    (accessToken &&
+      view === "welcome" &&
+      profileStatus !== "success" &&
+      profileStatus !== "onboarding-required")
   ) {
     return (
       <FeedbackScreen
@@ -84,7 +111,7 @@ export default function OnboardingFlow() {
           <WelcomeScreen
             onGoogleLogin={redirectToGoogleLogin}
             onLogin={() => setView("login")}
-            onStart={() => setView("intro")}
+            onSignup={() => openSignup("welcome")}
           />
         )}
 
@@ -100,7 +127,7 @@ export default function OnboardingFlow() {
         {currentView === "login" && (
           <LoginScreen
             onPasswordReset={() => setView("password-reset")}
-            onSignup={() => setView("signup")}
+            onSignup={() => openSignup("login")}
           />
         )}
 
@@ -109,7 +136,7 @@ export default function OnboardingFlow() {
         )}
 
         {currentView === "signup" && (
-          <SignupFlow onExit={() => setView("login")} />
+          <SignupFlow onExit={() => setView(signupReturnView)} />
         )}
 
         {currentView === "member-onboarding" && (
@@ -118,4 +145,31 @@ export default function OnboardingFlow() {
       </div>
     </main>
   );
+}
+
+function subscribeToServiceIntroStorage(): () => void {
+  return () => undefined;
+}
+
+function getServiceIntroCompletion(): boolean {
+  try {
+    return (
+      window.localStorage.getItem(SERVICE_INTRO_COMPLETED_STORAGE_KEY) ===
+      "true"
+    );
+  } catch {
+    return false;
+  }
+}
+
+function getServerServiceIntroCompletion(): null {
+  return null;
+}
+
+function markServiceIntroCompleted(): void {
+  try {
+    window.localStorage.setItem(SERVICE_INTRO_COMPLETED_STORAGE_KEY, "true");
+  } catch {
+    // The intro can still continue when browser storage is unavailable.
+  }
 }
