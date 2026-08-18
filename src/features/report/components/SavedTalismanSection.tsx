@@ -9,7 +9,7 @@ export default function SavedTalismanSection() {
   const { error, isLoading, items } = useTalismans(3);
 
   return (
-    <section className="mt-[164px] px-6">
+    <section className="mt-[26px] px-6">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-medium leading-[23px]">나의 부적</h2>
         <Link

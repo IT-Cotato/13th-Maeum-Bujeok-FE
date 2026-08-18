@@ -1,12 +1,15 @@
+import type { CSSProperties } from "react";
+
 import type { EmotionChartItem } from "@/features/report/utils";
 import { splitReportCopy } from "@/features/report/utils";
 
 const CHART_COLORS = ["#ff9d58", "#fed7a5", "#feecd2", "#f3f3f3"];
-const LABEL_POSITIONS = [
-  "left-[20px] top-[63px] text-white",
-  "right-[9px] top-[51px] text-[7px] text-foreground",
-  "right-[42px] top-[17px] text-[5px] text-gray-500",
-  "left-[61px] top-[-9px] text-[4px] text-gray-500",
+const LABEL_RADIUS = 45;
+const LABEL_STYLES = [
+  "text-white",
+  "text-[7px] text-foreground",
+  "text-[5px] text-gray-500",
+  "text-[4px] text-gray-500",
 ];
 
 type EmotionSummarySectionProps = {
@@ -21,18 +24,25 @@ export default function EmotionSummarySection({
   summary,
 }: EmotionSummarySectionProps) {
   return (
-    <section className="relative mt-[20px] h-[271px] bg-orange-100 pt-[18px]">
-      <h2 className="text-center text-lg font-semibold leading-normal text-orange-400">
-        리포트 요약
-      </h2>
-      <EmotionDonutChart items={chartItems} />
-      <SummaryCard isLoading={isLoading} summary={summary} />
+    <section className="relative mt-[20px] pt-[18px]">
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 top-0 h-[271px] bg-orange-100"
+      />
+      <div className="relative">
+        <h2 className="text-center text-lg font-semibold leading-normal text-orange-400">
+          리포트 요약
+        </h2>
+        <EmotionDonutChart items={chartItems} />
+        <SummaryCard isLoading={isLoading} summary={summary} />
+      </div>
     </section>
   );
 }
 
 function EmotionDonutChart({ items }: { items: EmotionChartItem[] }) {
   const background = createConicGradient(items);
+  const labelPositions = createLabelPositions(items);
 
   return (
     <div
@@ -43,9 +53,10 @@ function EmotionDonutChart({ items }: { items: EmotionChartItem[] }) {
       {items.map((item, index) =>
         item.percentage > 0 ? (
           <EmotionLabel
-            className={LABEL_POSITIONS[index]}
+            className={LABEL_STYLES[index]}
             key={item.emotion}
             label={item.emotion}
+            style={labelPositions[index]}
             value={`${item.percentage}%`}
             valueClassName={index === 0 ? "text-sm" : undefined}
           />
@@ -58,6 +69,7 @@ function EmotionDonutChart({ items }: { items: EmotionChartItem[] }) {
 type EmotionLabelProps = {
   className: string;
   label: string;
+  style: CSSProperties;
   value: string;
   valueClassName?: string;
 };
@@ -65,18 +77,35 @@ type EmotionLabelProps = {
 function EmotionLabel({
   className,
   label,
+  style,
   value,
   valueClassName = "text-[9px]",
 }: EmotionLabelProps) {
   return (
     <p
-      className={`absolute text-center font-medium leading-normal ${className}`}
+      className={`absolute -translate-x-1/2 -translate-y-1/2 text-center font-medium leading-normal ${className}`}
+      style={style}
     >
       {label}
       <br />
       <span className={valueClassName}>{value}</span>
     </p>
   );
+}
+
+function createLabelPositions(items: EmotionChartItem[]): CSSProperties[] {
+  let start = 0;
+
+  return items.map((item) => {
+    const middle = start + item.percentage / 2;
+    const angle = (middle / 100) * Math.PI * 2 - Math.PI / 2;
+    start += item.percentage;
+
+    return {
+      left: `calc(50% + ${Math.cos(angle) * LABEL_RADIUS}px)`,
+      top: `calc(50% + ${Math.sin(angle) * LABEL_RADIUS}px)`,
+    };
+  });
 }
 
 function SummaryCard({
@@ -97,9 +126,9 @@ function SummaryCard({
       "작성된 일기가 쌓이면 요약을 확인할 수 있어요.";
 
   return (
-    <article className="absolute left-6 right-6 top-[224px] h-[185px] rounded-lg border border-gray-200 bg-background px-[26px] py-[26px] shadow-[0_4px_20px_rgba(18,18,18,0.05)]">
-      <h3 className="text-base font-medium leading-6">{title}</h3>
-      <p className="mt-[7px] whitespace-pre-line text-sm leading-[18px] text-gray-500">
+    <article className="mx-6 mt-[22px] min-h-[185px] rounded-lg border border-gray-200 bg-background px-[26px] py-[26px] shadow-[0_4px_20px_rgba(18,18,18,0.05)]">
+      <h3 className="break-words text-base font-medium leading-6">{title}</h3>
+      <p className="mt-[7px] whitespace-pre-line break-words text-sm leading-[18px] text-gray-500">
         {body}
       </p>
     </article>
