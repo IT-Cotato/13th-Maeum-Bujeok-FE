@@ -24,12 +24,18 @@ export default function EmotionSummarySection({
   summary,
 }: EmotionSummarySectionProps) {
   return (
-    <section className="relative mt-[20px] h-[271px] bg-orange-100 pt-[18px]">
-      <h2 className="text-center text-lg font-semibold leading-normal text-orange-400">
-        리포트 요약
-      </h2>
-      <EmotionDonutChart items={chartItems} />
-      <SummaryCard isLoading={isLoading} summary={summary} />
+    <section className="relative mt-[20px] pt-[18px]">
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 top-0 h-[271px] bg-orange-100"
+      />
+      <div className="relative">
+        <h2 className="text-center text-lg font-semibold leading-normal text-orange-400">
+          리포트 요약
+        </h2>
+        <EmotionDonutChart items={chartItems} />
+        <SummaryCard isLoading={isLoading} summary={summary} />
+      </div>
     </section>
   );
 }
@@ -120,9 +126,9 @@ function SummaryCard({
       "작성된 일기가 쌓이면 요약을 확인할 수 있어요.";
 
   return (
-    <article className="absolute left-6 right-6 top-[224px] h-[185px] rounded-lg border border-gray-200 bg-background px-[26px] py-[26px] shadow-[0_4px_20px_rgba(18,18,18,0.05)]">
-      <h3 className="text-base font-medium leading-6">{title}</h3>
-      <p className="mt-[7px] whitespace-pre-line text-sm leading-[18px] text-gray-500">
+    <article className="mx-6 mt-[22px] min-h-[185px] rounded-lg border border-gray-200 bg-background px-[26px] py-[26px] shadow-[0_4px_20px_rgba(18,18,18,0.05)]">
+      <h3 className="break-words text-base font-medium leading-6">{title}</h3>
+      <p className="mt-[7px] whitespace-pre-line break-words text-sm leading-[18px] text-gray-500">
         {body}
       </p>
     </article>
