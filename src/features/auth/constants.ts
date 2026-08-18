@@ -3,6 +3,9 @@ export type ServiceIntroStep = {
   title: string;
 };
 
+export const SERVICE_INTRO_COMPLETED_STORAGE_KEY =
+  "maeum-bujeok:service-intro-completed";
+
 export const SERVICE_INTRO_STEPS: ServiceIntroStep[] = [
   {
     title: "털어놓기",

@@ -5,13 +5,13 @@ import AuthPrimaryButton from "@/features/auth/components/common/AuthPrimaryButt
 type WelcomeScreenProps = {
   onGoogleLogin: () => void;
   onLogin: () => void;
-  onStart: () => void;
+  onSignup: () => void;
 };
 
 export default function WelcomeScreen({
   onGoogleLogin,
   onLogin,
-  onStart,
+  onSignup,
 }: WelcomeScreenProps) {
   return (
     <section aria-labelledby="welcome-title" className="absolute inset-0">
@@ -40,7 +40,7 @@ export default function WelcomeScreen({
       </div>
 
       <div className="absolute inset-x-6 bottom-[181px]">
-        <AuthPrimaryButton onClick={onStart} type="button">
+        <AuthPrimaryButton onClick={onSignup} type="button">
           회원가입
         </AuthPrimaryButton>
       </div>
