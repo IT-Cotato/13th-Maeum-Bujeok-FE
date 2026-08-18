@@ -1,8 +1,8 @@
 import { isAxiosError } from "axios";
 
-import type { ApiResponse } from "@/features/auth/types";
 import type { TalismanItem, TalismanList } from "@/features/report/types";
 import { apiClient } from "@/services/apiClient";
+import type { ApiResponse } from "@/types/api";
 
 const TALISMANS_PATH = "/api/talismans";
 

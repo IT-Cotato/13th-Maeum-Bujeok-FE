@@ -1,7 +1,6 @@
 import { isAxiosError } from "axios";
 
 import type {
-  ApiResponse,
   AuthTokens,
   LoginRequest,
   MemberOnboardingRequest,
@@ -12,6 +11,7 @@ import type {
 } from "@/features/auth/types";
 import { isAuthTokens } from "@/features/auth/utils";
 import { API_BASE_URL, apiClient, publicApiClient } from "@/services/apiClient";
+import type { ApiResponse } from "@/types/api";
 
 export class AuthApiError extends Error {
   code: string;
@@ -34,6 +34,11 @@ export async function sendSignupSms(phoneNumber: string): Promise<void> {
 
 export async function sendPasswordResetSms(phoneNumber: string): Promise<void> {
   await sendSms(phoneNumber, "PASSWORD_RESET");
+}
+
+export async function sendProfilePhoneSms(phoneNumber: string): Promise<void> {
+  // Swagger currently exposes no phone-change purpose for an unused new number.
+  await sendSms(phoneNumber, "SIGNUP");
 }
 
 export async function verifySmsCode(request: SmsVerifyRequest): Promise<void> {

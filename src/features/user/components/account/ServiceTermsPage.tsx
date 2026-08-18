@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import TermsScrollArea from "@/features/user/components/TermsScrollArea";
+import TermsScrollArea from "@/features/user/components/account/TermsScrollArea";
 import { SERVICE_TERMS } from "@/features/user/serviceTerms";
 
 const SERVICE_TERM_LINES = SERVICE_TERMS.split("\n");

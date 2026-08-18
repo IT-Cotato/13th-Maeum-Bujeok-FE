@@ -12,7 +12,7 @@ import {
   getDiaryCount,
   toEmotionChartItems,
 } from "@/features/report/utils";
-import MemberName from "@/features/user/components/MemberName";
+import MemberName from "@/features/user/components/main/MemberName";
 
 export default function ReportPage() {
   const {

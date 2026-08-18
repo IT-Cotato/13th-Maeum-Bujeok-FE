@@ -1,8 +1,11 @@
 import { isAxiosError } from "axios";
 
-import type { ApiResponse } from "@/features/auth/types";
-import type { SajuAnalysis } from "@/features/user/types";
+import type {
+  CreateSajuAnalysisResponse,
+  SajuAnalysis,
+} from "@/features/user/types";
 import { apiClient } from "@/services/apiClient";
+import type { ApiResponse } from "@/types/api";
 
 const SAJU_ANALYSES_PATH = "/api/saju/analyses";
 
@@ -15,6 +18,39 @@ export class SajuAnalysisApiError extends Error {
     this.name = "SajuAnalysisApiError";
     this.code = code;
     this.status = status;
+  }
+}
+
+export async function createSajuAnalysis(): Promise<CreateSajuAnalysisResponse> {
+  try {
+    const response =
+      await apiClient.post<ApiResponse<CreateSajuAnalysisResponse>>(
+        SAJU_ANALYSES_PATH,
+      );
+    const payload = response.data;
+
+    if (!payload.success || !payload.data) {
+      throw new SajuAnalysisApiError(
+        payload.message || "사주 분석을 시작하지 못했어요.",
+        payload.code,
+      );
+    }
+
+    return payload.data;
+  } catch (error) {
+    if (error instanceof SajuAnalysisApiError) {
+      throw error;
+    }
+
+    if (isAxiosError<ApiResponse>(error)) {
+      throw new SajuAnalysisApiError(
+        error.response?.data?.message || "사주 분석을 시작하지 못했어요.",
+        error.response?.data?.code,
+        error.response?.status,
+      );
+    }
+
+    throw new SajuAnalysisApiError("사주 분석을 시작하지 못했어요.");
   }
 }
 

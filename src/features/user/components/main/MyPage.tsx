@@ -5,28 +5,20 @@ import Link from "next/link";
 
 import BottomNavigation from "@/components/layout/BottomNavigation";
 import { MAIN_NAVIGATION_ITEMS } from "@/constants/navigation";
-import AccountMenuSection from "@/features/user/components/AccountMenuSection";
-import FiveElementGaugeSection from "@/features/user/components/FiveElementGaugeSection";
-import MyMenuSection from "@/features/user/components/MyMenuSection";
-import MemberName from "@/features/user/components/MemberName";
+import AccountMenuSection from "@/features/user/components/account/AccountMenuSection";
+import FiveElementGaugeSection from "@/features/user/components/main/FiveElementGaugeSection";
+import MemberName from "@/features/user/components/main/MemberName";
+import MyMenuSection from "@/features/user/components/main/MyMenuSection";
 import {
   CONVENIENCE_MENU_ITEMS,
   SUPPORT_MENU_ITEMS,
-} from "@/features/user/constants";
+} from "@/features/user/constants/menu";
+import { FIVE_ELEMENT_ORDER } from "@/features/user/constants/saju";
 import { useLatestSajuAnalysis } from "@/features/user/hooks/useLatestSajuAnalysis";
 import type {
-  FiveElement,
   FiveElementGaugeValue,
   SajuAnalysisStatus,
 } from "@/features/user/types";
-
-const FIVE_ELEMENT_ORDER: FiveElement[] = [
-  "wood",
-  "fire",
-  "earth",
-  "metal",
-  "water",
-];
 
 export default function MyPage() {
   const { analysis, error, isLoading } = useLatestSajuAnalysis();
@@ -80,17 +72,17 @@ export default function MyPage() {
                   width={32}
                 />
               </div>
-              <p className="w-[75px] text-xl font-semibold leading-[22px]">
+              <p className="whitespace-nowrap text-xl font-semibold leading-[22px]">
                 <MemberName /> 님
               </p>
             </div>
 
-            <button
-              className="h-[29px] rounded-[50px] bg-orange-500 px-[15px] text-[13px] font-medium leading-normal text-white"
-              type="button"
+            <Link
+              className="flex h-[29px] shrink-0 items-center rounded-[50px] bg-orange-500 px-[15px] text-[13px] font-medium leading-normal text-white"
+              href="/my/profile"
             >
               프로필 수정
-            </button>
+            </Link>
           </section>
 
           <FiveElementGaugeSection

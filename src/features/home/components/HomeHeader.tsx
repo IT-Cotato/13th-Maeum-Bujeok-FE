@@ -1,4 +1,4 @@
-import MemberName from "@/features/user/components/MemberName";
+import MemberName from "@/features/user/components/main/MemberName";
 
 type HomeHeaderProps = {
   dateLabel: string;

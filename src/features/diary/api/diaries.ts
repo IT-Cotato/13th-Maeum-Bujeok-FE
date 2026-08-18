@@ -1,6 +1,5 @@
 import { isAxiosError } from "axios";
 
-import type { ApiResponse } from "@/features/auth/types";
 import type {
   CreateDiaryRequest,
   CreateDiaryResponse,
@@ -11,6 +10,7 @@ import type {
   UpdateDiaryResponse,
 } from "@/features/diary/types";
 import { apiClient } from "@/services/apiClient";
+import type { ApiResponse } from "@/types/api";
 
 export class DiaryApiError extends Error {
   code?: string;

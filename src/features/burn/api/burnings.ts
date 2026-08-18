@@ -1,6 +1,5 @@
 import { isAxiosError } from "axios";
 
-import type { ApiResponse } from "@/features/auth/types";
 import type {
   CreateBurningRequest,
   CreateBurningResponse,
@@ -9,6 +8,7 @@ import type {
   TalismanCreationResponse,
 } from "@/features/burn/types";
 import { apiClient } from "@/services/apiClient";
+import type { ApiResponse } from "@/types/api";
 
 export class BurningApiError extends Error {
   code?: string;

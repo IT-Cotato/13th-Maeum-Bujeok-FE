@@ -1,7 +1,8 @@
 import { isAxiosError } from "axios";
 
-import type { ApiResponse, LogoutRequest } from "@/features/auth/types";
+import type { LogoutRequest } from "@/features/auth/types";
 import { apiClient, publicApiClient } from "@/services/apiClient";
+import type { ApiResponse } from "@/types/api";
 
 const LOGOUT_PATH = "/api/auth/logout";
 const WITHDRAW_PATH = "/api/members/withdraw";

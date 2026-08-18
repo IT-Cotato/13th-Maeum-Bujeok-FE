@@ -1,6 +1,5 @@
 import { isAxiosError } from "axios";
 
-import type { ApiResponse } from "@/features/auth/types";
 import type {
   EmotionStat,
   GenerateWeeklyReportResponse,
@@ -11,6 +10,7 @@ import type {
   WeeklyReportSummary,
 } from "@/features/report/types";
 import { apiClient } from "@/services/apiClient";
+import type { ApiResponse } from "@/types/api";
 
 const REPORTS_PATH = "/api/reports";
 
