@@ -223,7 +223,7 @@ export default function DiaryWriteScreen() {
   const handleSaveDraftAndExit = () => {
     saveDraft(diaryDate, { content, emotionId });
     setIsExitDialogOpen(false);
-    goToEmotionScreen();
+    router.push("/");
   };
 
   const handleStartFresh = () => {

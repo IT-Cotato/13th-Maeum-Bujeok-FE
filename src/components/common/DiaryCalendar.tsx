@@ -102,14 +102,20 @@ export default function DiaryCalendar({
             const day = index + 1;
             const date = `${month}-${String(day).padStart(2, "0")}`;
             const isSelected = selectedDate === date;
+            const isFuture = date > today;
 
             return (
               <button
                 aria-label={`${day}일`}
                 aria-pressed={isSelected}
                 className={`flex h-10 items-center justify-center rounded-full text-[20px] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-orange-500 ${
-                  isSelected ? "font-semibold text-orange-500" : "text-foreground"
+                  isFuture
+                    ? "cursor-not-allowed text-gray-300"
+                    : isSelected
+                      ? "font-semibold text-orange-500"
+                      : "text-foreground"
                 }`}
+                disabled={isFuture}
                 key={date}
                 onClick={() => onSelect(date)}
                 type="button"
