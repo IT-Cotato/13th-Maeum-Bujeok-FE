@@ -9,6 +9,7 @@ import {
   getMonthFromDate,
   getTodayDateString,
 } from "@/features/diary/utils";
+import { useDiaryDraftStore } from "@/store/useDiaryDraftStore";
 
 const TODAY = getTodayDateString();
 
@@ -26,6 +27,18 @@ export default function DiaryDateSelectScreen() {
   };
 
   const handleNext = () => {
+    const hasDraft = Boolean(
+      useDiaryDraftStore.getState().drafts[selectedDate],
+    );
+
+    // 임시 저장된 일기가 있으면 감정을 다시 고를 필요가 없다(초안에 이미
+    // emotionId가 저장돼 있다). 곧바로 작성 화면으로 보내 "임시저장된 일기가
+    // 있어요" 팝업이 즉시 뜨도록 한다.
+    if (hasDraft) {
+      router.push(`/diary/new/write?date=${selectedDate}`);
+      return;
+    }
+
     router.push(`/diary/new/emotion?date=${selectedDate}`);
   };
 
