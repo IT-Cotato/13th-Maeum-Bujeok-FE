@@ -54,6 +54,7 @@ export type NextWeekFlow = {
   periodEnd: string;
   periodStart: string;
   reportVersion: string | null;
+  title: string | null;
 };
 
 export type NextWeekFlowStart = {

@@ -95,7 +95,9 @@ export default function ReportPage() {
         <SavedTalismanSection />
         <NextWeekSection
           advice={report?.nextWeekFlow?.adviceText ?? null}
+          generationStatus={report?.nextWeekFlow?.generationStatus ?? null}
           isLoading={isLoading}
+          title={report?.nextWeekFlow?.title ?? null}
         />
 
         <p aria-live="polite" className="sr-only">

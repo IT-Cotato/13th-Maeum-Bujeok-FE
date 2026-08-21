@@ -1,22 +1,27 @@
-import { splitReportCopy } from "@/features/report/utils";
+import type { NextWeekFlowStatus } from "@/features/report/types";
 
 type NextWeekSectionProps = {
   advice: string | null;
+  generationStatus: NextWeekFlowStatus | null;
   isLoading: boolean;
+  title: string | null;
 };
 
 export default function NextWeekSection({
   advice,
   isLoading,
+  generationStatus,
+  title,
 }: NextWeekSectionProps) {
-  const copy = splitReportCopy(advice);
-  const title = isLoading
-    ? "다음 주 흐름을 살펴보고 있어요."
-    : copy.title || "다음 주 흐름이 아직 준비되지 않았어요.";
-  const body = isLoading
-    ? "분석이 완료되면 다음 주를 위한 조언을 확인할 수 있어요."
-    : copy.body || copy.title || "이번 주 리포트가 완성되면 확인할 수 있어요.";
+  const isGenerating = isLoading || generationStatus === "PROCESSING";
 
+  const displayTitle = isGenerating
+    ? "다음 주 흐름을 살펴보고 있어요."
+    : title || "다음 주 흐름이 아직 준비되지 않았어요.";
+
+  const body = isGenerating
+    ? "분석이 완료되면 다음 주를 위한 조언을 확인할 수 있어요."
+    : advice || "이번 주 리포트가 완성되면 확인할 수 있어요.";
   return (
     <section className="px-6 pt-[31px]">
       <h2 className="text-xl font-medium leading-normal">다음주 흐름</h2>
