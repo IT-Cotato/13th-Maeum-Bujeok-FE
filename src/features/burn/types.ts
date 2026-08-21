@@ -30,10 +30,6 @@ export type GeneratedTalisman = {
   templateKey: TalismanTemplateKey;
 };
 
-export type SavedTalisman = GeneratedTalisman & {
-  savedAt: string;
-};
-
 export type CreateBurningRequest =
   | {
       content: string;
@@ -86,6 +82,7 @@ export type BurningListResponse = {
 export type TalismanCreationResponse = {
   hasTalisman: boolean;
   talisman: {
+    generationStatus: "COMPLETED" | "FAILED" | "PROCESSING";
     talismanId: number;
   } | null;
 };

@@ -22,7 +22,7 @@ export default function SavedTalismanSection() {
 
       {items.length > 0 ? (
         <div className="mt-[17px] grid grid-cols-3 gap-x-[23.28px]">
-          {items.map((talisman) => (
+          {items.slice(0, 3).map((talisman) => (
             <Link
               aria-label={`${talisman.title ?? "마음부적"} 자세히 보기`}
               href={`/report/talismans/${talisman.talismanId}`}

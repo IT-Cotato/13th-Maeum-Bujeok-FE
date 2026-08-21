@@ -8,6 +8,8 @@ const TALISMAN_PHRASE_LENGTH = 4;
 
 export const GENERATED_TALISMAN_STORAGE_KEY = "maeum-bujeok:generated-talisman";
 export const PENDING_BURN_STORAGE_KEY = "maeum-bujeok:pending-burn";
+export const PENDING_REPORT_TALISMAN_ID_STORAGE_KEY =
+  "maeum-bujeok:pending-report-talisman-id";
 export const TALISMAN_RETURN_PATH_STORAGE_KEY =
   "maeum-bujeok:talisman-return-path";
 

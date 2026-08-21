@@ -13,6 +13,13 @@ import {
   TALISMAN_RETURN_PATH_STORAGE_KEY,
   toGeneratedTalisman,
 } from "@/features/burn/utils";
+import {
+  getTalisman,
+  TalismanApiError,
+} from "@/features/report/api/talismans";
+
+const TALISMAN_POLL_INTERVAL_MS = 1000;
+const TALISMAN_POLL_LIMIT = 30;
 
 type CreateTalismanButtonProps = {
   burningId?: number;
@@ -44,6 +51,14 @@ export default function CreateTalismanButton({
       try {
         const result = await createTalisman(burningId);
         talismanId = result.talisman?.talismanId;
+
+        if (result.talisman?.generationStatus === "FAILED") {
+          throw new BurningApiError("부적 생성에 실패했어요. 다시 시도해 주세요.");
+        }
+
+        if (talismanId) {
+          await waitForTalismanCompletion(talismanId);
+        }
       } catch (createError) {
         if (
           !(createError instanceof BurningApiError) ||
@@ -97,5 +112,36 @@ export default function CreateTalismanButton({
         </p>
       ) : null}
     </div>
+  );
+}
+
+async function waitForTalismanCompletion(talismanId: number): Promise<void> {
+  for (let attempt = 0; attempt < TALISMAN_POLL_LIMIT; attempt += 1) {
+    try {
+      const talisman = await getTalisman(talismanId);
+
+      if (talisman.generationStatus === "COMPLETED") {
+        return;
+      }
+
+      if (talisman.generationStatus === "FAILED") {
+        throw new BurningApiError("부적 생성에 실패했어요. 다시 시도해 주세요.");
+      }
+    } catch (error) {
+      const isPendingNotFound =
+        error instanceof TalismanApiError && error.status === 404;
+
+      if (!isPendingNotFound) {
+        throw error;
+      }
+    }
+
+    await new Promise<void>((resolve) => {
+      window.setTimeout(resolve, TALISMAN_POLL_INTERVAL_MS);
+    });
+  }
+
+  throw new BurningApiError(
+    "부적 생성이 지연되고 있어요. 잠시 후 다시 확인해 주세요.",
   );
 }

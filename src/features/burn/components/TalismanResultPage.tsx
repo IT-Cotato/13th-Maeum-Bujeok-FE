@@ -11,14 +11,13 @@ import type { GeneratedTalisman } from "@/features/burn/types";
 import {
   GENERATED_TALISMAN_STORAGE_KEY,
   parseGeneratedTalisman,
+  PENDING_REPORT_TALISMAN_ID_STORAGE_KEY,
   TALISMAN_RETURN_PATH_STORAGE_KEY,
 } from "@/features/burn/utils";
-import { useTalismanStore } from "@/store/useTalismanStore";
 import type { MouseEvent as ReactMouseEvent } from "react";
 
 export default function TalismanResultPage() {
   const router = useRouter();
-  const saveTalisman = useTalismanStore((state) => state.saveTalisman);
   const serializedTalisman = useSyncExternalStore(
     subscribeToGeneratedTalisman,
     getGeneratedTalismanSnapshot,
@@ -41,7 +40,15 @@ export default function TalismanResultPage() {
       return;
     }
 
-    saveTalisman(talisman);
+    const talismanId = Number(talisman.id);
+
+    if (Number.isInteger(talismanId) && talismanId > 0) {
+      sessionStorage.setItem(
+        PENDING_REPORT_TALISMAN_ID_STORAGE_KEY,
+        String(talismanId),
+      );
+    }
+
     setIsSaved(true);
   };
 
